@@ -140,49 +140,49 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-in fade-in duration-300">
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto animate-in fade-in duration-300">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Gift className="h-6 w-6 text-green-500 mr-3" />
+              <Gift className="h-5 w-5 sm:h-6 sm:w-6 text-green-500 mr-2 sm:mr-3" />
               <div>
-                <h2 className="text-2xl font-bold text-gray-800">Claim Your Prize! 🎉</h2>
-                <p className="text-gray-600">🎁 {prizeName} (${prizeValue})</p>
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-800">Claim Your Prize! 🎉</h2>
+                <p className="text-sm sm:text-base text-gray-600">🎁 {prizeName} (${prizeValue})</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
+              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 hover:text-gray-700"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Prize Type Selection */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <CreditCard className="h-5 w-5 mr-2 text-blue-500" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-500" />
               Prize Type
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
               {claimTypes.map((type) => (
                 <button
                   key={type.value}
                   type="button"
                   onClick={() => handleClaimTypeChange(type.value)}
-                  className={`p-3 rounded-lg border-2 transition-all text-left ${
+                  className={`p-2 sm:p-3 rounded-lg border-2 transition-all text-left ${
                     formData.claim_type === type.value
                       ? 'border-green-500 bg-green-50 text-green-800'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
                   <div className="flex items-center">
-                    <span className="text-2xl mr-3">{type.icon}</span>
-                    <span className="font-medium">{type.label}</span>
+                    <span className="text-xl sm:text-2xl mr-2 sm:mr-3">{type.icon}</span>
+                    <span className="text-sm sm:text-base font-medium">{type.label}</span>
                   </div>
                 </button>
               ))}
@@ -191,92 +191,92 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
 
           {/* Account Information */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-              <User className="h-5 w-5 mr-2 text-purple-500" />
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+              <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-500" />
               Account Information
             </h3>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Email Address *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Mail className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <input
                     type="email"
                     value={formData.account_email}
                     onChange={(e) => handleInputChange('account_email', e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
                       errors.account_email ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="your.email@example.com"
                   />
                 </div>
                 {errors.account_email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.account_email}</p>
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.account_email}</p>
                 )}
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-500 text-xs sm:text-sm mt-1">
                   This email will be used to deliver your {selectedClaimType?.label.toLowerCase()}
                 </p>
               </div>
 
               {selectedClaimType?.requiresUsername && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Username/Account ID *
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <User className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                     <input
                       type="text"
                       value={formData.account_username}
                       onChange={(e) => handleInputChange('account_username', e.target.value)}
-                      className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                      className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
                         errors.account_username ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Your username or account ID"
                     />
                   </div>
                   {errors.account_username && (
-                    <p className="text-red-500 text-sm mt-1">{errors.account_username}</p>
+                    <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.account_username}</p>
                   )}
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Phone Number (Optional)
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Phone className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <input
                     type="tel"
                     value={formData.phone_number}
                     onChange={(e) => handleInputChange('phone_number', e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
+                    className={`w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-3 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all ${
                       errors.phone_number ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
                 {errors.phone_number && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone_number}</p>
+                  <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.phone_number}</p>
                 )}
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-gray-500 text-xs sm:text-sm mt-1">
                   For verification purposes if needed
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Special Instructions (Optional)
                 </label>
                 <textarea
                   value={formData.special_instructions}
                   onChange={(e) => handleInputChange('special_instructions', e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                  rows={2}
+                  className="w-full px-2 sm:px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
                   placeholder="Any special instructions or preferences..."
                 />
               </div>
@@ -284,12 +284,12 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
           </div>
 
           {/* Important Notice */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
             <div className="flex items-start">
-              <CheckCircle className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
+              <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
               <div>
-                <h4 className="font-medium text-green-800 mb-1">Prize Delivery Information</h4>
-                <p className="text-sm text-green-700">
+                <h4 className="text-sm sm:text-base font-medium text-green-800 mb-1">Prize Delivery Information</h4>
+                <p className="text-xs sm:text-sm text-green-700">
                   Our team will process your claim within 24-48 hours. You'll receive your {selectedClaimType?.label.toLowerCase()} 
                   via email. Please ensure your email address is correct and check your spam folder.
                 </p>
@@ -298,27 +298,27 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 pt-4 sm:pt-6 border-t border-gray-200">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-bold shadow-lg"
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-bold shadow-lg"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                   Processing...
                 </>
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
                   Claim Prize
                 </>
               )}

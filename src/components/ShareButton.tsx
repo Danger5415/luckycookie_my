@@ -20,29 +20,6 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
 }) => {
   const [shareState, setShareState] = useState<'idle' | 'sharing' | 'copied' | 'menu'>('idle');
 
-  const generateShareContent = (crack: any) => {
-    const baseUrl = window.location.origin;
-    const date = new Date(crack.created_at).toLocaleDateString();
-    
-    if (crack.type === 'premium' || crack.won) {
-      const prizeInfo = crack.type === 'premium' 
-        ? `${crack.gift_name} (${crack.premium_tier?.toUpperCase()} tier)` 
-        : crack.gift_name;
-        
-      return {
-        title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! ${baseUrl}`,
-        url: baseUrl
-      };
-    } else {
-      return {
-        title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! ${baseUrl}`,
-        url: baseUrl
-      };
-    }
-  };
-
   const handleShare = async () => {
     setShareState('sharing');
 
@@ -145,48 +122,48 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
       <div className="relative">
         <button
           onClick={() => setShareState(shareState === 'menu' ? 'idle' : 'menu')}
-          className={`${getButtonClass()} ${className} px-4 py-2 gap-2`}
+          className={`${getButtonClass()} ${className} px-3 sm:px-4 py-2 gap-1 sm:gap-2`}
           title={getTooltip()}
           disabled={shareState === 'sharing'}
         >
           {getIcon()}
-          <span className="text-sm font-medium">Share</span>
+          <span className="text-xs sm:text-sm font-medium">Share</span>
         </button>
         
         {shareState === 'menu' && (
-          <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-48">
+          <div className="absolute top-full right-0 mt-2 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 min-w-40 sm:min-w-48">
             <button
               onClick={handleShare}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
+              className="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 sm:gap-3"
             >
-              <Copy className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">Copy to clipboard</span>
+              <Copy className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+              <span className="text-xs sm:text-sm">Copy to clipboard</span>
             </button>
             
             <div className="border-t border-gray-100 my-1"></div>
             
             <button
               onClick={() => handleSocialShare('twitter')}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
+              className="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 sm:gap-3"
             >
-              <Twitter className="h-4 w-4 text-blue-400" />
-              <span className="text-sm">Share on Twitter</span>
+              <Twitter className="h-3 w-3 sm:h-4 sm:w-4 text-blue-400" />
+              <span className="text-xs sm:text-sm">Share on Twitter</span>
             </button>
             
             <button
               onClick={() => handleSocialShare('facebook')}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
+              className="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 sm:gap-3"
             >
-              <Facebook className="h-4 w-4 text-blue-600" />
-              <span className="text-sm">Share on Facebook</span>
+              <Facebook className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+              <span className="text-xs sm:text-sm">Share on Facebook</span>
             </button>
             
             <button
               onClick={() => handleSocialShare('whatsapp')}
-              className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-3"
+              className="w-full px-3 sm:px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 sm:gap-3"
             >
-              <MessageCircle className="h-4 w-4 text-green-500" />
-              <span className="text-sm">Share on WhatsApp</span>
+              <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+              <span className="text-xs sm:text-sm">Share on WhatsApp</span>
             </button>
           </div>
         )}

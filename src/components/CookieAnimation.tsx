@@ -32,26 +32,26 @@ export const CookieAnimation: React.FC<CookieAnimationProps> = ({
         } ${isCracking ? 'animate-pulse' : ''}`}
         onClick={handleCrack}
       >
-        <div className="text-8xl mb-4">🍪</div>
+        <div className="text-6xl sm:text-8xl mb-3 sm:mb-4">🍪</div>
         
         {isCracking && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-6xl animate-bounce">✨</div>
+            <div className="text-4xl sm:text-6xl animate-bounce">✨</div>
           </div>
         )}
       </div>
       
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         {isDisabled && countdown ? (
           <div className="text-center">
-            <p className="text-gray-600 mb-2">Next cookie ready in:</p>
-            <p className="text-2xl font-bold text-yellow-600">{countdown}</p>
+            <p className="text-sm sm:text-base text-gray-600 mb-2">Next cookie ready in:</p>
+            <p className="text-xl sm:text-2xl font-bold text-yellow-600">{countdown}</p>
           </div>
         ) : (
           <button
             onClick={handleCrack}
             disabled={isDisabled || isCracking}
-            className={`px-8 py-4 rounded-full font-bold text-white transition-all duration-300 ${
+            className={`px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base rounded-full font-bold text-white transition-all duration-300 ${
               isDisabled || isCracking
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 transform hover:scale-105 shadow-lg hover:shadow-xl'
