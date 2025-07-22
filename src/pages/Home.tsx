@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { CookieAnimation } from '../components/CookieAnimation';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { ShareButton } from '../components/ShareButton';
+import { FreePrizeClaimForm, type FreePrizeClaimData } from '../components/FreePrizeClaimForm';
 import { getRandomFreePrize, type FreePrize } from '../lib/prizes';
 import { User, Crown, History } from 'lucide-react';
 
@@ -15,8 +16,10 @@ export const Home: React.FC = () => {
   const [lastResult, setLastResult] = useState<{
     prize: FreePrize;
     timestamp: string;
+    crackHistoryId?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showClaimForm, setShowClaimForm] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -59,7 +62,7 @@ export const Home: React.FC = () => {
       const won = prize.type === 'gift';
 
       // Insert crack history
-      const { error: historyError } = await supabase
+      const { data: historyData, error: historyError } = await supabase
         .from('crack_history')
         .insert({
           user_id: user.id,
@@ -69,7 +72,9 @@ export const Home: React.FC = () => {
           gift_name: won ? prize.productName : null,
           gift_value: won ? prize.value : null,
           fortune: !won ? prize.message : '',
-        });
+        })
+        .select()
+        .single();
 
       if (historyError) throw historyError;
 
@@ -87,12 +92,23 @@ export const Home: React.FC = () => {
 
       setLastResult({ 
         prize, 
-        timestamp: new Date().toISOString() 
+        timestamp: new Date().toISOString(),
+        crackHistoryId: historyData?.id
       });
       setCanCrack(false);
       await fetchUserProfile();
     } catch (error) {
       console.error('Error cracking cookie:', error);
+    }
+  };
+
+  const handleClaimSubmit = async (claimData: FreePrizeClaimData) => {
+    try {
+      setShowClaimForm(false);
+      alert('Claim submitted successfully! Our team will process your request within 24-48 hours and contact you via email.');
+    } catch (error) {
+      console.error('Error handling claim submission:', error);
+      alert('Error submitting claim. Please try again.');
     }
   };
 
@@ -110,14 +126,14 @@ export const Home: React.FC = () => {
     
     if (prize.type === 'gift') {
       return {
-        title: 'LuckyCookie - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prize.productName} on LuckyCookie! 🎉\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! `,
+        title: 'LuckyCookie.io - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prize.productName} on LuckyCookie.io! 🎉\n\nTry your luck too! ${baseUrl}`,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie:\n\n"${prize.message}"\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! `,
+        title: 'LuckyCookie.io - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie.io:\n\n"${prize.message}"\n\nGet your fortune too! ${baseUrl}`,
         url: baseUrl
       };
     }
@@ -141,25 +157,25 @@ export const Home: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b-2 border-yellow-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center min-w-0">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <span className="text-2xl mr-2">🍪</span>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">LuckyCookie</h1>
+            <h1 className="text-2xl font-bold text-gray-800">LuckyCookie.io</h1>
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+          <div className="flex items-center space-x-4">
             <Link 
               to="/dashboard"
-              className="flex items-center px-2 sm:px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors text-sm sm:text-base"
+              className="flex items-center px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              <User className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Dashboard</span>
+              <User className="h-4 w-4 mr-2" />
+              Dashboard
             </Link>
             <Link 
               to="/premium"
-              className="flex items-center px-2 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all text-sm sm:text-base whitespace-nowrap"
+              className="flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 transition-all"
             >
-              <Crown className="h-4 w-4 sm:mr-2" />
-              <span className="hidden xs:inline sm:inline">Premium</span>
+              <Crown className="h-4 w-4 mr-2" />
+              Premium
             </Link>
           </div>
         </div>
@@ -235,6 +251,16 @@ export const Home: React.FC = () => {
                           <p className="text-lg text-green-600">Worth ${prize.value}</p>
                         )}
                       </div>
+                      
+                      {/* Claim Prize Button */}
+                      <div className="mb-4">
+                        <button
+                          onClick={() => setShowClaimForm(true)}
+                          className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all font-bold shadow-lg"
+                        >
+                          📋 Claim Your Prize
+                        </button>
+                      </div>
                 </div>
               ) : (
                 <div>
@@ -246,7 +272,19 @@ export const Home: React.FC = () => {
                 );
               })()}
 
-              {getShareContent() && (
+              {getShareContent() && !lastResult.prize.type === 'gift' && (
+                <div className="mt-4 flex justify-center">
+                  <ShareButton 
+                    content={getShareContent()!}
+                    variant="button"
+                    size="lg"
+                    className="bg-blue-500 text-white hover:bg-blue-600"
+                  />
+                </div>
+              )}
+              
+              {/* Share button for gifts - show after claiming */}
+              {lastResult.prize.type === 'gift' && !showClaimForm && (
                 <div className="mt-4 flex justify-center">
                   <ShareButton 
                     content={getShareContent()!}
@@ -289,6 +327,17 @@ export const Home: React.FC = () => {
           </Link>
         </div>
       </main>
+      
+      {/* Free Prize Claim Form Modal */}
+      {showClaimForm && lastResult && lastResult.prize.type === 'gift' && lastResult.crackHistoryId && (
+        <FreePrizeClaimForm
+          crackHistoryId={lastResult.crackHistoryId}
+          prizeName={lastResult.prize.productName || 'Free Prize'}
+          prizeValue={lastResult.prize.value || 0}
+          onClose={() => setShowClaimForm(false)}
+          onSubmit={handleClaimSubmit}
+        />
+      )}
     </div>
   );
 };

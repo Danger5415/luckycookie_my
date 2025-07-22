@@ -67,6 +67,25 @@ export interface AdminSettings {
   updated_by: string;
 }
 
+export interface FreePrizeClaim {
+  id: string;
+  user_id: string;
+  crack_history_id: string;
+  prize_name: string;
+  prize_value: number;
+  claim_type: string;
+  account_email: string;
+  account_username?: string;
+  phone_number?: string;
+  platform_details: any;
+  special_instructions?: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  admin_notes?: string;
+  processed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Database helper functions
 export class DatabaseService {
   // Shipping addresses
@@ -175,6 +194,67 @@ export class DatabaseService {
     if (filters?.status) query = query.eq('status', filters.status);
     if (filters?.user_id) query = query.eq('user_id', filters.user_id);
     if (filters?.tier) query = query.eq('tier', filters.tier);
+    if (filters?.limit) query = query.limit(filters.limit);
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  // Free prize claims
+  static async createFreePrizeClaim(data: Omit<FreePrizeClaim, 'id' | 'created_at' | 'updated_at'>) {
+    const { data: result, error } = await supabase
+      .from('free_prize_claims')
+      .insert(data)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return result;
+  }
+
+  static async updateFreePrizeClaimStatus(
+    id: string, 
+    status: FreePrizeClaim['status'], 
+    adminNotes?: string
+  ) {
+    const updateData: any = { 
+      status, 
+      updated_at: new Date().toISOString() 
+    };
+
+    if (adminNotes) updateData.admin_notes = adminNotes;
+    if (status === 'completed') updateData.processed_at = new Date().toISOString();
+
+    const { data, error } = await supabase
+      .from('free_prize_claims')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  static async getFreePrizeClaims(filters?: {
+    status?: string;
+    user_id?: string;
+    claim_type?: string;
+    limit?: number;
+  }) {
+    let query = supabase
+      .from('free_prize_claims')
+      .select(`
+        *,
+        user_profiles (email),
+        crack_history (created_at)
+      `)
+      .order('created_at', { ascending: false });
+
+    if (filters?.status) query = query.eq('status', filters.status);
+    if (filters?.user_id) query = query.eq('user_id', filters.user_id);
+    if (filters?.claim_type) query = query.eq('claim_type', filters.claim_type);
     if (filters?.limit) query = query.limit(filters.limit);
 
     const { data, error } = await query;
@@ -355,7 +435,24 @@ export class DatabaseService {
       totalUsers: results[0].count || 0,
       totalCracks: results[1].count || 0,
       premiumPurchases: results[2].count || 0,
-      pendingShipments: results[3].count || 0
+      pendingShipments: results[3].count || 0,
+      pendingFreeClaims: 0 // Will be updated with actual query
+    };
+  }
+
+  // Get analytics including free prize claims
+  static async getExtendedAnalytics(dateRange?: { start: string; end: string }) {
+    const basicAnalytics = await this.getAnalytics(dateRange);
+    
+    // Get pending free prize claims
+    const { count: pendingFreeClaims } = await supabase
+      .from('free_prize_claims')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['pending', 'processing']);
+
+    return {
+      ...basicAnalytics,
+      pendingFreeClaims: pendingFreeClaims || 0
     };
   }
 }

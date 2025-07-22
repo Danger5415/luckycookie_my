@@ -16,6 +16,7 @@ interface AdminStats {
   totalCracks: number;
   premiumPurchases: number;
   pendingShipments: number;
+  pendingFreeClaims?: number;
   todayRevenue: number;
   monthlyRevenue: number;
 }
@@ -40,6 +41,7 @@ export const Admin: React.FC = () => {
   const [shipments, setShipments] = useState<any[]>([]);
   const [prizes, setPrizes] = useState<any[]>([]);
   const [dynamicPrizes, setDynamicPrizes] = useState<any[]>([]);
+  const [freePrizeClaims, setFreePrizeClaims] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({});
   const [webhookLogs, setWebhookLogs] = useState<any[]>([]);
   
@@ -86,6 +88,7 @@ export const Admin: React.FC = () => {
         fetchShipments(),
         fetchPrizes(),
         fetchDynamicPrizes(),
+        fetchFreePrizeClaims(),
         fetchSettings(),
         fetchWebhookLogs()
       ]);
@@ -116,11 +119,26 @@ export const Admin: React.FC = () => {
         .select('*', { count: 'exact', head: true })
         .eq('type', 'premium');
 
-      // Fetch pending shipments
-      const { count: pendingShipments } = await supabase
-        .from('shipping_addresses')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['pending', 'processing']);
+      // Prepare queries array
+      const queries = [];
+
+      // Pending shipments
+      queries.push(
+        supabase
+          .from('shipping_addresses')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['pending', 'processing'])
+      );
+
+      // Pending free prize claims
+      queries.push(
+        supabase
+          .from('free_prize_claims')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['pending', 'processing'])
+      );
+
+      const results = await Promise.all(queries);
 
       // Get revenue data
       const { data: revenueData } = await supabase
@@ -142,7 +160,8 @@ export const Admin: React.FC = () => {
         totalUsers: totalUsers || 0,
         totalCracks: todayCracks || 0,
         premiumPurchases: premiumPurchases || 0,
-        pendingShipments: pendingShipments || 0,
+        pendingShipments: results[0].count || 0,
+        pendingFreeClaims: results[1].count || 0,
         todayRevenue,
         monthlyRevenue
       });
@@ -246,6 +265,15 @@ export const Admin: React.FC = () => {
     }
   };
 
+  const fetchFreePrizeClaims = async () => {
+    try {
+      const claims = await DatabaseService.getFreePrizeClaims({ limit: 100 });
+      setFreePrizeClaims(claims || []);
+    } catch (error) {
+      console.error('Error fetching free prize claims:', error);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       const { data } = await supabase
@@ -326,6 +354,17 @@ export const Admin: React.FC = () => {
     }
   };
 
+  const updateFreeClaimStatus = async (claimId: string, status: string, adminNotes?: string) => {
+    try {
+      await DatabaseService.updateFreePrizeClaimStatus(claimId, status as any, adminNotes);
+      await fetchFreePrizeClaims();
+      alert('Claim status updated successfully!');
+    } catch (error) {
+      console.error('Error updating claim:', error);
+      alert('Error updating claim status.');
+    }
+  };
+
   const exportData = (type: string) => {
     let data = [];
     let filename = '';
@@ -346,6 +385,10 @@ export const Admin: React.FC = () => {
       case 'winners':
         data = winners;
         filename = 'winners.json';
+        break;
+      case 'free-claims':
+        data = freePrizeClaims;
+        filename = 'free-prize-claims.json';
         break;
       default:
         return;
@@ -403,6 +446,26 @@ export const Admin: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center">
+            <Package className="h-10 w-10 text-purple-500 mr-4" />
+            <div>
+              <p className="text-3xl font-bold text-gray-800">{stats.pendingShipments}</p>
+              <p className="text-gray-600">Pending Shipments</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="flex items-center">
+            <Gift className="h-10 w-10 text-emerald-500 mr-4" />
+            <div>
+              <p className="text-3xl font-bold text-gray-800">{stats.pendingFreeClaims || 0}</p>
+              <p className="text-gray-600">Free Prize Claims</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -435,6 +498,12 @@ export const Admin: React.FC = () => {
               <span className="text-gray-600">Pending Shipments</span>
               <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-sm">
                 {stats.pendingShipments}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Free Prize Claims</span>
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-sm">
+                {stats.pendingFreeClaims || 0}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -552,6 +621,7 @@ export const Admin: React.FC = () => {
     { id: 'winners', name: 'Winners', icon: Gift },
     { id: 'purchases', name: 'Purchases', icon: ShoppingCart },
     { id: 'shipments', name: 'Shipments', icon: Truck },
+    { id: 'free-claims', name: 'Free Claims', icon: Gift },
     { id: 'prizes', name: 'Prizes', icon: Star },
     { id: 'settings', name: 'Settings', icon: Settings },
   ];
@@ -1083,6 +1153,109 @@ export const Admin: React.FC = () => {
             </div>
           )}
           {activeTab === 'shipments' && renderShipments()}
+          {activeTab === 'free-claims' && (
+            <div className="bg-white rounded-xl shadow-lg">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-gray-800">Free Prize Claims Management</h3>
+                  <div className="flex space-x-2">
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="processing">Processing</option>
+                      <option value="completed">Completed</option>
+                      <option value="failed">Failed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
+                    <button
+                      onClick={() => exportData('free-claims')}
+                      className="flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prize</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Account</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {freePrizeClaims
+                      .filter(claim => 
+                        filterStatus === 'all' || claim.status === filterStatus
+                      )
+                      .map((claim) => (
+                        <tr key={claim.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{claim.user_profiles?.email || 'Unknown'}</div>
+                              <div className="text-sm text-gray-500">{new Date(claim.created_at).toLocaleDateString()}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{claim.prize_name}</div>
+                            <div className="text-sm text-gray-500">${claim.prize_value}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                              {claim.claim_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">{claim.account_email}</div>
+                            {claim.account_username && (
+                              <div className="text-sm text-gray-500">@{claim.account_username}</div>
+                            )}
+                            {claim.phone_number && (
+                              <div className="text-sm text-gray-500">{claim.phone_number}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              claim.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              claim.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              claim.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              claim.status === 'failed' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {claim.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <select
+                              value={claim.status}
+                              onChange={(e) => updateFreeClaimStatus(claim.id, e.target.value)}
+                              className="px-2 py-1 border border-gray-300 rounded text-xs"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="processing">Processing</option>
+                              <option value="completed">Completed</option>
+                              <option value="failed">Failed</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           {activeTab === 'prizes' && renderPrizes()}
           {activeTab === 'settings' && renderSettings()}
         </div>
