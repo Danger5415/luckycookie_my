@@ -133,7 +133,7 @@ export const Dashboard: React.FC = () => {
     } else {
       return {
         title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie!:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! ${baseUrl}`,
+        text: `🍪 My fortune from LuckyCookie!:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! `,
         url: baseUrl
       };
     }
