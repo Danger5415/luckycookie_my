@@ -110,14 +110,14 @@ export const Home: React.FC = () => {
     
     if (prize.type === 'gift') {
       return {
-        title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prize.productName} on LuckyCookie.io! 🎉\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! ${baseUrl}`,
+        title: 'LuckyCookie - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prize.productName} on LuckyCookie! 🎉\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! `,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${prize.message}"\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! ${baseUrl}`,
+        title: 'LuckyCookie - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie:\n\n"${prize.message}"\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! `,
         url: baseUrl
       };
     }
@@ -144,7 +144,7 @@ export const Home: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center min-w-0">
           <div className="flex items-center">
             <span className="text-2xl mr-2">🍪</span>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">LuckyCookie.io</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">LuckyCookie</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <Link 
