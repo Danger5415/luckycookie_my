@@ -127,13 +127,13 @@ export const Dashboard: React.FC = () => {
         
       return {
         title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! ${baseUrl}`,
+        text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nCrack free fortune cookies every hour and win amazing prizes! Try your luck too! ${baseUrl}`,
         url: baseUrl
       };
     } else {
       return {
         title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! ${baseUrl}`,
+        text: `🍪 My fortune from LuckyCookie!:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nCrack free fortune cookies every hour and discover amazing fortunes! Get your fortune too! ${baseUrl}`,
         url: baseUrl
       };
     }
