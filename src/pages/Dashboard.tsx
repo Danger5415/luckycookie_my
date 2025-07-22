@@ -126,14 +126,14 @@ export const Dashboard: React.FC = () => {
         : crack.gift_name;
         
       return {
-        title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nTry your luck too! ${baseUrl}`,
+        title: 'LuckyCookie - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nTry your luck too! `,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! ${baseUrl}`,
+        title: 'LuckyCookie - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! `,
         url: baseUrl
       };
     }

@@ -127,13 +127,13 @@ export const Home: React.FC = () => {
     if (prize.type === 'gift') {
       return {
         title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prize.productName} on LuckyCookie.io! 🎉\n\nTry your luck too! ${baseUrl}`,
+        text: `🍪 I just won ${prize.productName} on LuckyCookie! 🎉\n\nTry your luck too! `,
         url: baseUrl
       };
     } else {
       return {
         title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${prize.message}"\n\nGet your fortune too! ${baseUrl}`,
+        text: `🍪 My fortune from LuckyCookie:\n\n"${prize.message}"\n\nGet your fortune too! `,
         url: baseUrl
       };
     }
