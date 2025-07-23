@@ -10,6 +10,7 @@ import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
 import { Premium } from './pages/Premium';
 import { PremiumCrack } from './pages/PremiumCrack';
+import { ResetPassword } from './pages/ResetPassword';
 import { Admin } from './pages/Admin';
 
 function App() {
@@ -44,6 +45,12 @@ function App() {
         <Route 
           path="/login" 
           element={user ? <Navigate to="/home" replace /> : <Login />} 
+        />
+        
+        {/* Password Reset Route */}
+        <Route 
+          path="/reset-password" 
+          element={<ResetPassword />} 
         />
         
         {/* Protected Routes */}

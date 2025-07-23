@@ -29,6 +29,29 @@ export const signOut = async () => {
   if (error) throw error;
 };
 
+export const resetPassword = async (email: string) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) throw error;
+};
+
+export const deleteAccount = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('No user found');
+
+  // Delete user profile and related data (cascade will handle related records)
+  const { error: profileError } = await supabase
+    .from('user_profiles')
+    .delete()
+    .eq('id', user.id);
+
+  if (profileError) throw profileError;
+
+  // Sign out the user
+  await signOut();
+};
+
 export const getCurrentUser = async (): Promise<User | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   return user;

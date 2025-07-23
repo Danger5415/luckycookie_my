@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { signInWithPassword, signUpWithEmail, validatePassword, validateEmail } from '../lib/auth';
+import { signInWithPassword, signUpWithEmail, resetPassword, validatePassword, validateEmail } from '../lib/auth';
 import { Mail, Cookie, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
 export const Login: React.FC = () => {
@@ -10,6 +10,8 @@ export const Login: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('error');
@@ -109,7 +111,119 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setMessage('');
+    setMessageType('error');
+
+    if (!validateEmail(resetEmail)) {
+      setMessage('Please enter a valid email address.');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await resetPassword(resetEmail);
+      setMessage('Password reset email sent! Check your inbox for instructions.');
+      setMessageType('success');
+      setShowResetPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      let errorMessage = 'Failed to send reset email. Please try again.';
+      
+      if (error.message?.includes('Email not found')) {
+        errorMessage = 'No account found with this email address.';
+      } else if (error.message?.includes('Too many requests')) {
+        errorMessage = 'Too many reset attempts. Please wait before trying again.';
+      }
+      
+      setMessage(errorMessage);
+      setMessageType('error');
+      console.error('Password reset error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const passwordStrength = password ? getPasswordStrength(password) : null;
+
+  if (showResetPassword) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center mb-4">
+              <Cookie className="h-12 w-12 text-yellow-500 mr-2" />
+              <h1 className="text-3xl font-bold text-gray-800">Reset Password</h1>
+            </div>
+            <p className="text-gray-600">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+          </div>
+
+          <form onSubmit={handleResetPassword} className="space-y-6">
+            <div>
+              <label htmlFor="resetEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="email"
+                  id="resetEmail"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200"
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 px-4 rounded-lg font-bold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? 'Sending Reset Email...' : 'Send Reset Email 📧'}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setShowResetPassword(false);
+                setMessage('');
+                setResetEmail('');
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 underline"
+            >
+              Back to Sign In
+            </button>
+          </div>
+
+          {/* Message Display */}
+          {message && (
+            <div className={`mt-4 p-4 rounded-lg text-center ${
+              messageType === 'success'
+                ? 'bg-green-100 text-green-800 border border-green-200' 
+                : 'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              <div className="flex items-center justify-center">
+                {messageType === 'success' ? (
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 mr-2" />
+                )}
+                {message}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
@@ -266,6 +380,16 @@ export const Login: React.FC = () => {
 
         {/* Toggle Sign Up / Sign In */}
         <div className="mt-6 text-center">
+          {!isSignUp && (
+            <div className="mb-4">
+              <button
+                onClick={() => setShowResetPassword(true)}
+                className="text-sm text-blue-600 hover:text-blue-800 underline"
+              >
+                Forgot your password?
+              </button>
+            </div>
+          )}
           <button
             onClick={() => {
               setIsSignUp(!isSignUp);

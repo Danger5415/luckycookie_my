@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
-import { signOut } from '../lib/auth';
+import { signOut, deleteAccount } from '../lib/auth';
 import { premiumTiers } from '../lib/prizes';
-import { ArrowLeft, Trophy, Calendar, Gift, LogOut, Clock, Share2, Check, Copy, Package } from 'lucide-react';
+import { ArrowLeft, Trophy, Calendar, Gift, LogOut, Clock, Share2, Check, Copy, Package, Trash2, AlertTriangle } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -13,6 +13,9 @@ export const Dashboard: React.FC = () => {
   const [shippingAddresses, setShippingAddresses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [shareStates, setShareStates] = useState<{ [key: string]: 'idle' | 'sharing' | 'copied' }>({});
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -65,6 +68,23 @@ export const Dashboard: React.FC = () => {
       await signOut();
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      await deleteAccount();
+      // User will be automatically redirected to login after account deletion
+    } catch (error: any) {
+      console.error('Error deleting account:', error);
+      alert('Failed to delete account. Please try again or contact support.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -126,14 +146,14 @@ export const Dashboard: React.FC = () => {
         : crack.gift_name;
         
       return {
-        title: 'LuckyCookie - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nTry your luck too! `,
+        title: 'LuckyCookie.io - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nTry your luck too! ${baseUrl}`,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! `,
+        title: 'LuckyCookie.io - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! ${baseUrl}`,
         url: baseUrl
       };
     }
@@ -426,7 +446,119 @@ export const Dashboard: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Delete Account Section */}
+        <div className="bg-red-50 border border-red-200 rounded-2xl shadow-xl p-4 sm:p-8">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <div>
+              <h3 className="text-xl sm:text-2xl font-bold text-red-800 mb-1 sm:mb-2 flex items-center">
+                <Trash2 className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+                Danger Zone
+              </h3>
+              <p className="text-sm sm:text-base text-red-600">
+                Permanently delete your account and all associated data.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-3 sm:p-4 border border-red-200">
+            <div className="flex items-start mb-3 sm:mb-4">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
+              <div>
+                <h4 className="text-sm sm:text-base font-semibold text-red-800 mb-1">Delete Account</h4>
+                <p className="text-xs sm:text-sm text-red-600 mb-2">
+                  This action cannot be undone. This will permanently delete your account, 
+                  crack history, prizes, and all associated data.
+                </p>
+                <ul className="text-xs sm:text-sm text-red-600 list-disc list-inside space-y-1">
+                  <li>All your crack history will be lost</li>
+                  <li>Any pending prize claims will be cancelled</li>
+                  <li>Your account cannot be recovered</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-bold flex items-center justify-center"
+            >
+              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+              Delete Account
+            </button>
+          </div>
+        </div>
       </main>
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[95vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-500 mr-2 sm:mr-3" />
+                <h2 className="text-lg sm:text-xl font-bold text-red-800">Confirm Account Deletion</h2>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+                <h3 className="font-bold text-red-800 mb-2">⚠️ This action is irreversible!</h3>
+                <p className="text-sm text-red-700 mb-3">
+                  You are about to permanently delete your LuckyCookie.io account. This will:
+                </p>
+                <ul className="text-sm text-red-700 list-disc list-inside space-y-1">
+                  <li>Delete all your crack history ({crackHistory.length} records)</li>
+                  <li>Cancel any pending prize claims</li>
+                  <li>Remove all your personal data</li>
+                  <li>Sign you out immediately</li>
+                </ul>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Type <strong>DELETE</strong> to confirm:
+                </label>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                  placeholder="Type DELETE here"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false);
+                    setDeleteConfirmText('');
+                  }}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center font-bold"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-2" />
+                      Delete Account Forever
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
