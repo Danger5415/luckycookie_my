@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { gumroadAPI } from '../lib/gumroad';
 import { premiumTiers, getDynamicPremiumPrizesByTier, formatPriceRange, type PremiumTier, type PremiumPrize } from '../lib/prizes';
+import { PrizeModal } from '../components/PrizeModal';
 import { ArrowLeft, Crown, Star, Zap, ExternalLink } from 'lucide-react';
 
 export const Premium: React.FC = () => {
@@ -10,6 +11,7 @@ export const Premium: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState<PremiumTier | null>(null);
   const [tierPrizes, setTierPrizes] = useState<PremiumPrize[]>([]);
   const [loadingPrizes, setLoadingPrizes] = useState(false);
+  const [showPrizeModal, setShowPrizeModal] = useState(false);
 
   // Fetch prizes when tier is selected
   useEffect(() => {
@@ -42,20 +44,30 @@ export const Premium: React.FC = () => {
     window.location.href = purchaseUrl;
   };
 
+  const handleViewPrizes = async (tier: PremiumTier) => {
+    setSelectedTier(tier);
+    setShowPrizeModal(true);
+    await fetchTierPrizes(tier.tier);
+  };
+
+  const handleCloseModal = () => {
+    setShowPrizeModal(false);
+    setSelectedTier(null);
+    setTierPrizes([]);
+  };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
+    <div className={`min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 ${showPrizeModal ? 'overflow-hidden' : ''}`}>
       {/* Header */}
       <header className="bg-white shadow-sm border-b-2 border-purple-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center min-w-0">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <Link to="/home" className="flex items-center text-gray-600 hover:text-gray-800 mr-2 sm:mr-6">
+            <Link to="/home" className="flex items-center text-gray-600 hover:text-gray-800 mr-6">
               <ArrowLeft className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">Back to Home</span>
-              <span className="sm:hidden">Back</span>
+              Back to Home
             </Link>
             <div className="flex items-center">
               <Crown className="h-8 w-8 text-purple-500 mr-2" />
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Premium Cookies</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Premium Cookies</h1>
             </div>
           </div>
         </div>
@@ -104,14 +116,12 @@ export const Premium: React.FC = () => {
                 </p>
                 
                 <button
-                  onClick={() => setSelectedTier(selectedTier?.tier === tier.tier ? null : tier)}
+                  onClick={() => handleViewPrizes(tier)}
                   className={`w-full py-3 px-4 rounded-lg font-medium transition-colors mb-4 ${
-                    selectedTier?.tier === tier.tier
-                      ? `${tier.bgColor} ${tier.color} border ${tier.borderColor}`
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {selectedTier?.tier === tier.tier ? 'Hide Prizes' : 'View Prizes'}
+                  View Prizes
                 </button>
                 
                 <button
@@ -131,64 +141,6 @@ export const Premium: React.FC = () => {
             </div>
           ))}
         </div>
-
-        {/* Selected Tier Prizes */}
-        {selectedTier && (
-          <div className={`bg-white rounded-3xl shadow-2xl p-8 mb-12 border-2 ${selectedTier.borderColor}`}>
-            <h3 className={`text-3xl font-bold mb-8 text-center ${selectedTier.color}`}>
-              {selectedTier.icon} {selectedTier.name} Tier Prizes
-            </h3>
-            
-            {loadingPrizes ? (
-              <div className="text-center py-8">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-400 border-t-transparent mb-4"></div>
-                <p className="text-gray-600">Loading available prizes...</p>
-              </div>
-            ) : tierPrizes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                {tierPrizes.slice(0, 5).map((prize) => (
-                  <div 
-                    key={prize.id}
-                    className={`${selectedTier.bgColor} rounded-xl p-4 border ${selectedTier.borderColor}`}
-                  >
-                    <div className="aspect-square mb-3 rounded-lg overflow-hidden">
-                      <img 
-                        src={prize.image} 
-                        alt={prize.productName}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-4">📦</div>
-                <p className="text-gray-600 mb-4">No prizes available for this tier yet.</p>
-                <p className="text-sm text-gray-500">Our team is working to add more amazing prizes!</p>
-              </div>
-            )}
-            
-            <div className="text-center mt-6">
-              <p className="text-gray-600 mb-4">
-                You'll randomly receive <strong>one</strong> of these {tierPrizes.length} prizes when you crack your {selectedTier.name} cookie!
-              </p>
-              <button
-                onClick={() => handlePurchase(selectedTier)}
-                className={`px-8 py-3 rounded-xl font-bold text-white transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center justify-center mx-auto ${
-                  selectedTier.tier === 'bronze' ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600' :
-                  selectedTier.tier === 'silver' ? 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700' :
-                  selectedTier.tier === 'gold' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700' :
-                  selectedTier.tier === 'sapphire' ? 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700' :
-                  'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
-                }`}
-              >
-                Buy {selectedTier.name} Cookie ({formatPriceRange(selectedTier)})
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* How It Works */}
         <div className="mt-12 bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl p-8">
@@ -230,6 +182,17 @@ export const Premium: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Prize Modal */}
+      {showPrizeModal && selectedTier && (
+        <PrizeModal
+          selectedTier={selectedTier}
+          tierPrizes={tierPrizes}
+          loadingPrizes={loadingPrizes}
+          onClose={handleCloseModal}
+          onPurchase={handlePurchase}
+        />
+      )}
     </div>
   );
 };
