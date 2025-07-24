@@ -147,13 +147,13 @@ export const Dashboard: React.FC = () => {
         
       return {
         title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nTry your luck too! ${baseUrl}`,
+        text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nTry your luck too! `,
         url: baseUrl
       };
     } else {
       return {
         title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! ${baseUrl}`,
+        text: `🍪 My fortune from LuckyCookie:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! `,
         url: baseUrl
       };
     }
@@ -207,7 +207,7 @@ export const Dashboard: React.FC = () => {
               <ArrowLeft className="h-3 w-3 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
               <span className="text-xs sm:text-base">Back to Home</span>
             </Link>
-            <h1 className="text-base sm:text-2xl font-bold text-gray-800">Dashboard</h1>
+            
           </div>
           <button
             onClick={handleSignOut}
@@ -304,7 +304,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Crack History */}
-        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-6 sm:mb-8">
           <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-6">Recent Activity</h3>
           
           {crackHistory.length === 0 ? (
