@@ -71,7 +71,8 @@ export const useAuth = () => {
         // Handle invalid refresh token errors
         if (sessionError && (
           sessionError.message?.includes('Invalid Refresh Token') ||
-          sessionError.message?.includes('refresh_token_not_found')
+          sessionError.message?.includes('refresh_token_not_found') ||
+          sessionError.message?.includes('session has expired')
         )) {
           console.log('🔄 Invalid refresh token, signing out...');
           await supabase.auth.signOut();

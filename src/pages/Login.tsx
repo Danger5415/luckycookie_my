@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { signInWithPassword, signUpWithEmail, resetPassword, validatePassword, validateEmail } from '../lib/auth';
 import { Mail, Cookie, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -17,12 +17,22 @@ export const Login: React.FC = () => {
   const [messageType, setMessageType] = useState<'success' | 'error'>('error');
   const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   React.useEffect(() => {
     const error = searchParams.get('error');
     if (error === 'auth_failed') {
       setMessage('Authentication failed. Please try again.');
       setMessageType('error');
+    }
+    
+    // Handle state from navigation (e.g., from password reset)
+    if (location.state?.message) {
+      setMessage(location.state.message);
+      setMessageType(location.state.messageType || 'info');
+      if (location.state.showResetPassword) {
+        setShowResetPassword(true);
+      }
     }
   }, [searchParams]);
 
@@ -125,7 +135,7 @@ export const Login: React.FC = () => {
 
     try {
       await resetPassword(resetEmail);
-      setMessage('Password reset email sent! Check your inbox for instructions.');
+      setMessage('Password reset email sent! Check your inbox and click the link to reset your password. The link will expire in 1 hour.');
       setMessageType('success');
       setShowResetPassword(false);
       setResetEmail('');
@@ -136,6 +146,8 @@ export const Login: React.FC = () => {
         errorMessage = 'No account found with this email address.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many reset attempts. Please wait before trying again.';
+      } else if (error.message?.includes('rate limit')) {
+        errorMessage = 'Rate limit exceeded. Please wait a few minutes before requesting another reset.';
       }
       
       setMessage(errorMessage);

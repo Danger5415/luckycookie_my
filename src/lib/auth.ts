@@ -32,6 +32,7 @@ export const signOut = async () => {
 export const resetPassword = async (email: string) => {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/reset-password`,
+    captchaToken: undefined, // Disable captcha for now
   });
   if (error) throw error;
 };
