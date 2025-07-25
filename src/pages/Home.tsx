@@ -159,7 +159,11 @@ export const Home: React.FC = () => {
       <header className="bg-white shadow-sm border-b-2 border-yellow-200">
         <div className="max-w-4xl mx-auto px-2 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <span className="text-base sm:text-2xl mr-1 sm:mr-2">🍪</span>
+            <img 
+              src="/logo.png" 
+              alt="LuckyCookie.io Logo" 
+              className="h-6 w-6 sm:h-8 sm:w-8 mr-1 sm:mr-2 object-contain"
+            />
             <h1 className="text-sm sm:text-2xl font-bold text-gray-800">LuckyCookie.io</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">

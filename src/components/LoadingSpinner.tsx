@@ -25,7 +25,11 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">{isSessionExpired ? '🔐' : '⚠️'}</div>
+          <img 
+            src="/logo.png" 
+            alt="LuckyCookie.io Logo" 
+            className="h-16 w-16 sm:h-24 sm:w-24 mb-4 animate-bounce mx-auto object-contain"
+          />
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             {isSessionExpired ? 'Session Expired' : 
              error.includes('Supabase') ? 'Configuration Error' : 'Connection Error'}

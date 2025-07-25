@@ -154,7 +154,11 @@ export const Login: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
-              <Cookie className="h-12 w-12 text-yellow-500 mr-2" />
+              <img 
+                src="/logo.png" 
+                alt="LuckyCookie.io Logo" 
+                className="h-12 w-12 mr-2 object-contain"
+              />
               <h1 className="text-3xl font-bold text-gray-800">Reset Password</h1>
             </div>
             <p className="text-gray-600">
@@ -230,7 +234,11 @@ export const Login: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <Cookie className="h-12 w-12 text-yellow-500 mr-2" />
+            <img 
+              src="/logo.png" 
+              alt="LuckyCookie.io Logo" 
+              className="h-12 w-12 mr-2 object-contain"
+            />
             <h1 className="text-3xl font-bold text-gray-800">LuckyCookie</h1>
           </div>
           <p className="text-gray-600">

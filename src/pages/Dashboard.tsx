@@ -146,13 +146,13 @@ export const Dashboard: React.FC = () => {
         : crack.gift_name;
         
       return {
-        title: 'LuckyCookie.io - I Won a Prize! 🎉',
+        title: 'LuckyCookie - I Won a Prize! 🎉',
         text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nTry your luck too! `,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie.io - My Fortune 🔮',
+        title: 'LuckyCookie - My Fortune 🔮',
         text: `🍪 My fortune from LuckyCookie:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! `,
         url: baseUrl
       };
@@ -228,7 +228,11 @@ export const Dashboard: React.FC = () => {
               <h2 className="text-lg sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">Welcome back! 👋</h2>
               <p className="text-xs sm:text-lg text-gray-600 break-all">{user?.email}</p>
             </div>
-            <div className="text-2xl sm:text-6xl">🍪</div>
+            <img 
+              src="/logo.png" 
+              alt="LuckyCookie.io Logo" 
+              className="h-12 w-12 sm:h-20 sm:w-20 object-contain"
+            />
           </div>
 
           {/* Stats Grid */}
