@@ -27,7 +27,7 @@ export const ResetPassword: React.FC = () => {
         try {
           await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: refreshToken,
+            refresh_token: '',
           });
           setMessage('Reset link verified. Enter your new password below.');
           setMessageType('info');
