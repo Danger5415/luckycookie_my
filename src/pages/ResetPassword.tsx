@@ -277,51 +277,51 @@ export const ResetPassword: React.FC = () => {
   }
 
   // Show error state if session is invalid
-  if (!sessionValid) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Cookie className="h-12 w-12 text-red-500 mr-2" />
-              <h1 className="text-3xl font-bold text-gray-800">Reset Link Invalid</h1>
-            </div>
-          </div>
+  // if (!sessionValid) {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
+  //       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+  //         <div className="text-center mb-8">
+  //           <div className="flex items-center justify-center mb-4">
+  //             <Cookie className="h-12 w-12 text-red-500 mr-2" />
+  //             <h1 className="text-3xl font-bold text-gray-800">Reset Link Invalid</h1>
+  //           </div>
+  //         </div>
 
-          {message && (
-            <div className="mb-6 p-4 rounded-lg text-center bg-red-100 text-red-800 border border-red-200">
-              <div className="flex items-center justify-center">
-                <AlertCircle className="h-5 w-5 mr-2" />
-                {message}
-              </div>
-            </div>
-          )}
+  //         {message && (
+  //           <div className="mb-6 p-4 rounded-lg text-center bg-red-100 text-red-800 border border-red-200">
+  //             <div className="flex items-center justify-center">
+  //               <AlertCircle className="h-5 w-5 mr-2" />
+  //               {message}
+  //             </div>
+  //           </div>
+  //         )}
 
-          <div className="space-y-4">
-            <button
-              onClick={handleRetryValidation}
-              className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry Validation
-            </button>
+  //         <div className="space-y-4">
+  //           <button
+  //             onClick={handleRetryValidation}
+  //             className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center"
+  //           >
+  //             <RefreshCw className="h-4 w-4 mr-2" />
+  //             Retry Validation
+  //           </button>
             
-            <button
-              onClick={handleRequestNewReset}
-              className="w-full bg-yellow-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-yellow-600 transition-colors"
-            >
-              Request New Reset Link
-            </button>
-          </div>
+  //           <button
+  //             onClick={handleRequestNewReset}
+  //             className="w-full bg-yellow-500 text-white py-3 px-4 rounded-lg font-bold hover:bg-yellow-600 transition-colors"
+  //           >
+  //             Request New Reset Link
+  //           </button>
+  //         </div>
 
-          <div className="mt-8 text-center text-sm text-gray-500">
-            <p>Reset links expire after 1 hour for security.</p>
-            <p>Make sure you're using the latest reset email.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //         <div className="mt-8 text-center text-sm text-gray-500">
+  //           <p>Reset links expire after 1 hour for security.</p>
+  //           <p>Make sure you're using the latest reset email.</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // Show password reset form if session is valid
   return (
