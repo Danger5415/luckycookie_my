@@ -1,3 +1,5 @@
+// ✅ Fixed: Reset password component with correct Supabase session logic
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -17,18 +19,21 @@ export const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up session from URL parameters immediately
     const setupSession = async () => {
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
       const type = searchParams.get('type');
-      
+
       if (accessToken && refreshToken && type === 'recovery') {
         try {
-          await supabase.auth.setSession({
+          // ✅ Correct: pass both access and refresh token
+          const { error } = await supabase.auth.setSession({
             access_token: accessToken,
-            refresh_token: '',
+            refresh_token: refreshToken,
           });
+
+          if (error) throw error;
+
           setMessage('Reset link verified. Enter your new password below.');
           setMessageType('info');
         } catch (error) {
@@ -47,18 +52,14 @@ export const ResetPassword: React.FC = () => {
 
   const handlePasswordChange = (newPassword: string) => {
     setPassword(newPassword);
-    if (newPassword) {
-      const validation = validatePassword(newPassword);
-      setPasswordErrors(validation.errors);
-    } else {
-      setPasswordErrors([]);
-    }
+    const validation = validatePassword(newPassword);
+    setPasswordErrors(validation.errors);
   };
 
   const getPasswordStrength = (password: string) => {
     const validation = validatePassword(password);
     const strength = 4 - validation.errors.length;
-    
+
     if (strength === 0) return { level: 'weak', color: 'bg-red-500', text: 'Weak' };
     if (strength === 1) return { level: 'fair', color: 'bg-orange-500', text: 'Fair' };
     if (strength === 2) return { level: 'good', color: 'bg-yellow-500', text: 'Good' };
@@ -71,27 +72,23 @@ export const ResetPassword: React.FC = () => {
     setIsLoading(true);
     setMessage('');
 
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setMessage('Please fix the password requirements below.');
+      setMessageType('error');
+      setIsLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setMessage('Passwords do not match.');
+      setMessageType('error');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Basic validation
-      const passwordValidation = validatePassword(password);
-      if (!passwordValidation.isValid) {
-        setMessage('Please fix the password requirements below.');
-        setMessageType('error');
-        setIsLoading(false);
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        setMessage('Passwords do not match.');
-        setMessageType('error');
-        setIsLoading(false);
-        return;
-      }
-
-      // Update the password
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      });
+      const { error } = await supabase.auth.updateUser({ password });
 
       if (error) {
         console.error('Password update error:', error);
@@ -103,18 +100,16 @@ export const ResetPassword: React.FC = () => {
 
       setMessage('Password updated successfully! Redirecting to login...');
       setMessageType('success');
-      
-      // Sign out to ensure clean state and redirect
+
       setTimeout(async () => {
         await supabase.auth.signOut();
-        navigate('/login', { 
-          state: { 
+        navigate('/login', {
+          state: {
             message: 'Password updated successfully! Please sign in with your new password.',
-            messageType: 'success'
-          }
+            messageType: 'success',
+          },
         });
       }, 2000);
-      
     } catch (error: any) {
       console.error('Unexpected error:', error);
       setMessage('An unexpected error occurred. Please try again.');
@@ -125,18 +120,19 @@ export const ResetPassword: React.FC = () => {
   };
 
   const handleRequestNewReset = () => {
-    navigate('/login', { 
-      state: { 
+    navigate('/login', {
+      state: {
         showResetPassword: true,
         message: 'Please request a new password reset.',
-        messageType: 'info'
-      }
+        messageType: 'info',
+      },
     });
   };
 
   const passwordStrength = password ? getPasswordStrength(password) : null;
 
-  return (
+
+ return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
@@ -306,4 +302,4 @@ export const ResetPassword: React.FC = () => {
       </div>
     </div>
   );
-};
+}; 
