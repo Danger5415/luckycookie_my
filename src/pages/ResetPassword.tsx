@@ -71,6 +71,9 @@ export const ResetPassword: React.FC = () => {
           errorMessage = 'Invalid reset link. Please request a new password reset.';
         } else if (error.message?.includes('token')) {
           errorMessage = 'Reset token is invalid. Please request a new password reset.';
+        } else {
+          // Fallback to show the raw error message for debugging
+          errorMessage = `Reset link validation failed: ${error.message}. Please request a new password reset.`;
         }
         
         setMessage(errorMessage);
@@ -108,7 +111,7 @@ export const ResetPassword: React.FC = () => {
       
     } catch (error: any) {
       console.error('Session validation failed:', error);
-      setMessage(`Session validation failed: ${error.message}. Please request a new password reset.`);
+      setMessage(`Reset link validation failed: ${error.message}. Please request a new password reset.`);
       setMessageType('error');
       setSessionValid(false);
     } finally {
@@ -199,6 +202,9 @@ export const ResetPassword: React.FC = () => {
           setSessionValid(false);
         } else if (error.message?.includes('same password')) {
           errorMessage = 'New password must be different from your current password.';
+        } else {
+          // Fallback to show the raw error message for debugging
+          errorMessage = `Password update failed: ${error.message}. Please try again or request a new reset link.`;
         }
         
         setMessage(errorMessage);

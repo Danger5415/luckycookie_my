@@ -59,6 +59,12 @@ export const useAuth = () => {
         
         const sessionResult = await Promise.race([sessionPromise, extendedTimeoutPromise]) as any;
         
+        // Check if the result is an error from timeout
+        if (sessionResult instanceof Error) {
+          console.error('❌ Session request timed out:', sessionResult.message);
+          throw sessionResult;
+        }
+        
         if (!mounted) {
           console.log('🚫 Component unmounted, aborting initialization');
           return;
