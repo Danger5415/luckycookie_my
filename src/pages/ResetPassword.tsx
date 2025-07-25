@@ -1,5 +1,3 @@
-// ✅ Fixed: Reset password component with correct Supabase session logic
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
