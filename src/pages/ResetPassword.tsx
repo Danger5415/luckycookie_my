@@ -28,10 +28,26 @@ export const ResetPassword: React.FC = () => {
     }
 
     // Set the session with the tokens from the URL
-    supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
+    const setSessionAsync = async () => {
+      try {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        
+        if (error) {
+          console.error('Session setup error:', error);
+          setMessage(`Invalid reset link: ${error.message}. Please request a new password reset.`);
+          setMessageType('error');
+        }
+      } catch (error: any) {
+        console.error('Session setup failed:', error);
+        setMessage(`Failed to setup session: ${error.message}. Please request a new password reset.`);
+        setMessageType('error');
+      }
+    };
+    
+    setSessionAsync();
   }, [searchParams]);
 
   const handlePasswordChange = (newPassword: string) => {
@@ -90,17 +106,21 @@ export const ResetPassword: React.FC = () => {
         navigate('/login');
       }, 2000);
     } catch (error: any) {
-      let errorMessage = 'Failed to update password. Please try again.';
+      console.error('Password update error:', error);
+      let errorMessage = `Failed to update password: ${error.message || 'Unknown error'}`;
       
       if (error.message?.includes('Password should be at least')) {
         errorMessage = 'Password must be at least 8 characters long.';
       } else if (error.message?.includes('Invalid token')) {
-        errorMessage = 'Reset link has expired. Please request a new password reset.';
+        errorMessage = `Reset link has expired: ${error.message}. Please request a new password reset.`;
+      } else if (error.message?.includes('session')) {
+        errorMessage = `Session error: ${error.message}. Please try the reset process again.`;
+      } else if (error.message?.includes('expired')) {
+        errorMessage = `Token expired: ${error.message}. Please request a new password reset.`;
       }
       
       setMessage(errorMessage);
       setMessageType('error');
-      console.error('Password reset error:', error);
     } finally {
       setIsLoading(false);
     }
