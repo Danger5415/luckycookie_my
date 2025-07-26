@@ -176,6 +176,11 @@ export const Login: React.FC = () => {
             <p className="text-gray-600">
               Enter your email address and we'll send you a link to reset your password.
             </p>
+            <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                📧 <strong>Important:</strong> Please check your spam/junk folder if you don't receive the email within a few minutes.
+              </p>
+            </div>
           </div>
 
           <form onSubmit={handleResetPassword} className="space-y-6">
@@ -234,6 +239,11 @@ export const Login: React.FC = () => {
                 )}
                 {message}
               </div>
+              {messageType === 'success' && (
+                <div className="mt-2 text-sm text-green-700">
+                  Don't forget to check your spam/junk folder if the email doesn't appear in your inbox!
+                </div>
+              )}
             </div>
           )}
         </div>
