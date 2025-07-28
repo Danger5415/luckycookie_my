@@ -95,16 +95,14 @@ export const useAuth = () => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Temporarily bypass user profile creation to isolate auth issues
-          console.log('👤 Skipping user profile creation for debugging');
-          // try {
-          //   console.log('👤 Creating user profile...');
-          //   await createUserProfile(session.user);
-          //   console.log('✅ User profile created/updated');
-          // } catch (profileError) {
-          //   console.warn('⚠️ Profile creation warning:', profileError);
-          //   // Don't throw here, user can still use the app
-          // }
+          try {
+            console.log('👤 Creating user profile...');
+            await createUserProfile(session.user);
+            console.log('✅ User profile created/updated');
+          } catch (profileError) {
+            console.warn('⚠️ Profile creation warning:', profileError);
+            // Don't throw here, user can still use the app
+          }
         }
         
         console.log('✅ Auth initialization completed successfully');
@@ -140,14 +138,12 @@ export const useAuth = () => {
           setError(null);
           
           if (session?.user && event === 'SIGNED_IN') {
-            // Temporarily bypass user profile creation to isolate auth issues
-            console.log('👤 Skipping user profile creation in auth state change');
-            // try {
-            //   await createUserProfile(session.user);
-            // } catch (profileError) {
-            //   console.warn('Profile creation warning:', profileError);
-            //   // Don't throw here, user can still use the app
-            // }
+            try {
+              await createUserProfile(session.user);
+            } catch (profileError) {
+              console.warn('Profile creation warning:', profileError);
+              // Don't throw here, user can still use the app
+            }
           }
         } catch (error: any) {
           console.error('Auth state change error:', error);
