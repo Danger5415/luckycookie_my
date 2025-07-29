@@ -44,7 +44,8 @@ export const useAuth = () => {
           }
         }, 25000); // 25 second timeout
         
-        console.log('🔐 Getting Supabase session...');
+        console.log('🔐 About to call supabase.auth.getSession()...');
+        const sessionStartTime = Date.now();
         
         // Get session with timeout
         const sessionPromise = supabase.auth.getSession(); // This is the promise that's not resolving in time
@@ -54,10 +55,13 @@ export const useAuth = () => {
         
         // Increase timeout to 20 seconds for slower connections
         const extendedTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session request timed out after 20 seconds')), 20000);
+          setTimeout(() => reject(new Error('Session request timed out after 30 seconds')), 30000);
         });
         
         const sessionResult = await Promise.race([sessionPromise, extendedTimeoutPromise]) as any;
+        
+        const sessionEndTime = Date.now();
+        console.log(`📦 Session result received after ${sessionEndTime - sessionStartTime}ms`);
         
         // Check if the result is an error from timeout
         if (sessionResult instanceof Error) {
@@ -70,7 +74,7 @@ export const useAuth = () => {
           return;
         }
         
-        console.log('📦 Session result received');
+        console.log('🔍 Processing session result...');
         
         const { data: { session }, error: sessionError } = sessionResult;
         
@@ -96,9 +100,11 @@ export const useAuth = () => {
         
         if (session?.user) {
           try {
-            console.log('👤 Creating user profile...');
+            console.log('👤 About to create/update user profile...');
+            const profileStartTime = Date.now();
             await createUserProfile(session.user);
-            console.log('✅ User profile created/updated');
+            const profileEndTime = Date.now();
+            console.log(`✅ User profile created/updated after ${profileEndTime - profileStartTime}ms`);
           } catch (profileError) {
             console.warn('⚠️ Profile creation warning:', profileError);
             // Don't throw here, user can still use the app
