@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { DatabaseService } from '../lib/database';
 import { CookieAnimation } from '../components/CookieAnimation';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { ShareButton } from '../components/ShareButton';
@@ -97,6 +98,24 @@ export const Home: React.FC = () => {
       });
       setCanCrack(false);
       await fetchUserProfile();
+
+      // Send notification for free prize wins
+      if (won && user) {
+        console.log('🎁 About to send free prize win notification for:', prize.productName);
+        await DatabaseService.notifyPrizeWin({
+          type: 'free_prize_win',
+          user: {
+            email: user.email!,
+            id: user.id,
+          },
+          prize: {
+            name: prize.productName || 'Free Prize',
+            value: prize.value,
+            type: prize.type,
+          },
+        });
+        console.log('🎁 Free prize win notification call completed');
+      }
     } catch (error) {
       console.error('Error cracking cookie:', error);
     }

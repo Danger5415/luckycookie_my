@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { DatabaseService } from '../lib/database';
 import { useAuth } from '../hooks/useAuth';
 import { Gift, Mail, User, Phone, Save, X, CheckCircle, CreditCard, Smartphone } from 'lucide-react';
 
@@ -116,6 +117,28 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
       if (error) throw error;
 
       onSubmit(formData);
+
+      // Send notification for free prize claim
+      if (user) {
+        console.log('📋 About to send free prize claim notification for:', prizeName);
+        await DatabaseService.notifyPrizeWin({
+          type: 'free_prize_claim',
+          user: {
+            email: user.email!,
+            id: user.id,
+          },
+          prize: {
+            name: prizeName,
+            value: prizeValue,
+          },
+          details: {
+            claimType: formData.claim_type,
+            accountEmail: formData.account_email,
+            specialInstructions: formData.special_instructions,
+          },
+        });
+        console.log('📋 Free prize claim notification call completed');
+      }
     } catch (error) {
       console.error('Error saving claim information:', error);
       setErrors({ account_email: 'Failed to save claim information. Please try again.' });

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { DatabaseService } from '../lib/database';
 import { useAuth } from '../hooks/useAuth';
 import { Package, MapPin, User, Phone, Mail, Save, X, CheckCircle } from 'lucide-react';
 
@@ -104,6 +105,25 @@ export const ShippingForm: React.FC<ShippingFormProps> = ({
       if (error) throw error;
 
       onSubmit(formData);
+
+      // Send notification for premium prize shipping info
+      if (user) {
+        console.log('📦 About to send premium shipping info notification for:', prizeName);
+        await DatabaseService.notifyPrizeWin({
+          type: 'premium_shipping_info',
+          user: {
+            email: user.email!,
+            id: user.id,
+          },
+          prize: {
+            name: prizeName,
+          },
+          details: {
+            shippingAddress: formData,
+          },
+        });
+        console.log('📦 Premium shipping info notification call completed');
+      }
     } catch (error) {
       console.error('Error saving shipping information:', error);
       // Show a more user-friendly error message

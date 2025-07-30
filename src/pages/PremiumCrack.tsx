@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { DatabaseService } from '../lib/database';
 import { gumroadAPI } from '../lib/gumroad';
 import { CookieAnimation } from '../components/CookieAnimation';
 import { ShippingForm, type ShippingData } from '../components/ShippingForm';
@@ -102,6 +103,24 @@ export const PremiumCrack: React.FC = () => {
       }
 
       setPrize(selectedPrize);
+
+      // Send notification for premium prize wins
+      if (user) {
+        console.log('👑 About to send premium prize win notification for:', selectedPrize.productName);
+        await DatabaseService.notifyPrizeWin({
+          type: 'premium_prize_win',
+          user: {
+            email: user.email!,
+            id: user.id,
+          },
+          prize: {
+            name: selectedPrize.productName,
+            value: selectedPrize.value,
+            tier: selectedPrize.tier,
+          },
+        });
+        console.log('👑 Premium prize win notification call completed');
+      }
     } catch (error: any) {
       console.error('Error cracking premium cookie:', error);
       setError(error.message || 'Something went wrong');
@@ -145,16 +164,15 @@ export const PremiumCrack: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b-2 border-purple-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center min-w-0">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center">
-            <Link to="/premium" className="flex items-center text-gray-600 hover:text-gray-800 mr-2 sm:mr-6">
+            <Link to="/premium" className="flex items-center text-gray-600 hover:text-gray-800 mr-6">
               <ArrowLeft className="h-5 w-5 mr-2" />
-              <span className="hidden sm:inline">Back to Premium</span>
-              <span className="sm:hidden">Back</span>
+              Back to Premium
             </Link>
             <div className="flex items-center">
               <Crown className="h-8 w-8 text-purple-500 mr-2" />
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Premium Crack</h1>
+              <h1 className="text-2xl font-bold text-gray-800">Premium Crack</h1>
             </div>
           </div>
         </div>

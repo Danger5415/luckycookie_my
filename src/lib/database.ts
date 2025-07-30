@@ -455,4 +455,64 @@ export class DatabaseService {
       pendingFreeClaims: pendingFreeClaims || 0
     };
   }
+
+  // Prize notification system
+  static async notifyPrizeWin(payload: {
+    type: 'free_prize_win' | 'premium_prize_win' | 'free_prize_claim' | 'premium_shipping_info';
+    user: {
+      email: string;
+      id: string;
+    };
+    prize: {
+      name: string;
+      value?: number;
+      tier?: string;
+      type?: string;
+    };
+    details?: {
+      claimType?: string;
+      accountEmail?: string;
+      shippingAddress?: any;
+      specialInstructions?: string;
+    };
+  }) {
+    console.log('🔔 DatabaseService.notifyPrizeWin called with payload:', payload);
+    
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      console.log('📧 Supabase URL:', supabaseUrl ? 'Present' : 'Missing');
+      
+      const response = await fetch(`${supabaseUrl}/functions/v1/send-prize-notification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          ...payload,
+          timestamp: new Date().toISOString(),
+        }),
+      });
+
+      console.log('📧 Notification fetch response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Failed to send prize notification:', errorText);
+        console.error('📧 Full response details:', { status: response.status, statusText: response.statusText, errorText });
+        // Don't throw error - notification failure shouldn't break the main flow
+        return false;
+      }
+
+      const result = await response.json();
+      console.log('Prize notification sent successfully:', result);
+      console.log('📧 Notification sent successfully with result:', result);
+      return true;
+    } catch (error) {
+      console.error('Error sending prize notification:', error);
+      console.error('📧 Notification error details:', error);
+      // Don't throw error - notification failure shouldn't break the main flow
+      return false;
+    }
+  }
 }
