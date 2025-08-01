@@ -8,7 +8,7 @@ import { CountdownTimer } from '../components/CountdownTimer';
 import { ShareButton } from '../components/ShareButton';
 import { FreePrizeClaimForm, type FreePrizeClaimData } from '../components/FreePrizeClaimForm';
 import { getRandomFreePrize, type FreePrize } from '../lib/prizes';
-import { User, Crown, History } from 'lucide-react';
+import { User, Crown, History, Trophy } from 'lucide-react';
 
 export const Home: React.FC = () => {
   const { user } = useAuth();
@@ -176,7 +176,7 @@ export const Home: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b-2 border-yellow-200">
-        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-4 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center">
             <img 
               src="/logo.png" 
@@ -193,6 +193,14 @@ export const Home: React.FC = () => {
               <User className="h-2.5 w-2.5 sm:h-4 sm:w-4 mr-0.5 sm:mr-2" />
               <span className="hidden sm:inline">Dashboard</span>
               <span className="sm:hidden">Stats</span>
+            </Link>
+            <Link 
+              to="/leaderboard"
+              className="flex items-center px-1.5 sm:px-4 py-1 sm:py-2 text-sm sm:text-sm bg-yellow-100 rounded-lg hover:bg-yellow-200 transition-colors"
+            >
+              <Trophy className="h-4 w-4 sm:h-4 sm:w-4 mr-0.5 sm:mr-2" />
+              <span className="hidden sm:inline">Leaderboard</span>
+              <span className="sm:hidden">Ranks</span>
             </Link>
             <Link 
               to="/premium"

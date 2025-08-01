@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useSearchParams, useLocation } from 'react-router-dom';
 import { signInWithPassword, signUpWithEmail, resetPassword, validatePassword, validateEmail } from '../lib/auth';
-import { Mail, Cookie, Lock, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Mail, Cookie, Lock, Eye, EyeOff, AlertCircle, CheckCircle, Trophy } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -253,6 +254,17 @@ export const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center p-4">
+      {/* Leaderboard Button - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <Link 
+          to="/leaderboard"
+          className="flex items-center px-3 py-2 text-sm bg-white/80 backdrop-blur-sm text-gray-700 rounded-lg hover:bg-white hover:text-gray-900 transition-all shadow-sm border border-gray-200"
+        >
+          <Trophy className="h-4 w-4 mr-1" />
+          Leaderboard
+        </Link>
+      </div>
+      
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">

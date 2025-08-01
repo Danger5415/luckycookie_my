@@ -12,6 +12,7 @@ import { Premium } from './pages/Premium';
 import { PremiumCrack } from './pages/PremiumCrack';
 import { ResetPassword } from './pages/ResetPassword';
 import { Admin } from './pages/Admin';
+import { Leaderboard } from './pages/Leaderboard';
 
 function App() {
   const { user, loading, error, initialized } = useAuth();
@@ -51,6 +52,12 @@ function App() {
         <Route 
           path="/reset-password" 
           element={<ResetPassword />} 
+        />
+        
+        {/* Public Leaderboard Route */}
+        <Route 
+          path="/leaderboard" 
+          element={<Leaderboard />} 
         />
         
         {/* Protected Routes */}
