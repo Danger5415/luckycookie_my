@@ -83,19 +83,6 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         <p className="mt-4 text-gray-600 font-medium">{message}</p>
         <p className="mt-2 text-sm text-gray-500">This should only take a moment</p>
         
-        {/* Debug info in development */}
-        {import.meta.env.DEV && (
-          <div className="mt-4 p-4 bg-white rounded-lg shadow-lg text-left max-w-md mx-auto">
-            <h4 className="font-bold text-gray-800 mb-2">Debug Info:</h4>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div>Environment: {import.meta.env.MODE}</div>
-              <div>Supabase URL: {import.meta.env.VITE_SUPABASE_URL ? 'Set' : 'Missing'}</div>
-              <div>Supabase Key: {import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Set' : 'Missing'}</div>
-              <div>Error: {error || 'None'}</div>
-            </div>
-          </div>
-        )}
-        
         {/* Progress indicator */}
         <div className="mt-6 w-64 mx-auto">
           <div className="bg-gray-200 rounded-full h-2">
