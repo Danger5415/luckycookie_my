@@ -10,15 +10,27 @@ interface ShareButtonProps {
   variant?: 'icon' | 'button';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  isWin?: boolean;
+  crackHistoryId?: string;
+  onShareSuccess?: (crackHistoryId: string) => void;
 }
 
 export const ShareButton: React.FC<ShareButtonProps> = ({ 
   content, 
   variant = 'icon', 
   size = 'md',
-  className = '' 
+  className = '',
+  isWin = false,
+  crackHistoryId,
+  onShareSuccess
 }) => {
   const [shareState, setShareState] = useState<'idle' | 'sharing' | 'copied' | 'menu'>('idle');
+
+  const triggerShareBonus = () => {
+    if (isWin && crackHistoryId && onShareSuccess) {
+      onShareSuccess(crackHistoryId);
+    }
+  };
 
   const handleShare = async () => {
     setShareState('sharing');
@@ -27,12 +39,14 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
       // Try native sharing first (mobile devices)
       if (navigator.share && navigator.canShare && navigator.canShare(content)) {
         await navigator.share(content);
+        triggerShareBonus();
         setShareState('idle');
         return;
       }
       
       // Fallback to clipboard
       await navigator.clipboard.writeText(content.text);
+      triggerShareBonus();
       setShareState('copied');
       
       // Reset state after 2 seconds
@@ -69,6 +83,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
     
     if (shareUrl) {
       window.open(shareUrl, '_blank', 'width=600,height=400');
+      triggerShareBonus();
     }
     
     setShareState('idle');

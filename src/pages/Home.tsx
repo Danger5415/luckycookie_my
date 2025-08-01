@@ -121,6 +121,36 @@ export const Home: React.FC = () => {
     }
   };
 
+  const handleShareBonusApplied = async (crackHistoryId: string) => {
+    if (!user) return;
+
+    try {
+      // Check if bonus has already been applied
+      const bonusAlreadyApplied = await DatabaseService.checkShareBonusApplied(crackHistoryId);
+      
+      if (bonusAlreadyApplied) {
+        alert('Share bonus has already been applied for this win!');
+        return;
+      }
+
+      // Apply the share bonus (reduce cooldown by 30 minutes)
+      await DatabaseService.adjustLastCrackTime(user.id, 30);
+      
+      // Mark this win as having granted the bonus
+      await DatabaseService.updateCrackHistoryShareStatus(crackHistoryId);
+      
+      // Show success message
+      alert('🎉 Share bonus applied! Your next crack is now available 30 minutes earlier!');
+      
+      // Refresh user profile to update the countdown
+      await fetchUserProfile();
+      
+    } catch (error) {
+      console.error('Error applying share bonus:', error);
+      alert('Error applying share bonus. Please try again.');
+    }
+  };
+
   const handleClaimSubmit = async (claimData: FreePrizeClaimData) => {
     try {
       setShowClaimForm(false);
@@ -316,16 +346,28 @@ export const Home: React.FC = () => {
                 </div>
               )}
               
-              {/* Share button for gifts - show after claiming */}
-              {lastResult.prize.type === 'gift' && !showClaimForm && (
-                <div className="mt-3 sm:mt-4 flex justify-center">
-                  <ShareButton 
-                    content={getShareContent()!}
-                    variant="button"
-                    size="lg"
-                    className="bg-blue-500 text-white hover:bg-blue-600"
-                  />
-                </div>
+              {/* Share button for gifts - show with bonus feature */}
+              {lastResult.prize.type === 'gift' && (
+                <>
+                  <div className="mt-3 sm:mt-4 flex justify-center">
+                    <ShareButton 
+                      content={getShareContent()!}
+                      variant="button"
+                      size="lg"
+                      className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
+                      isWin={true}
+                      crackHistoryId={lastResult.crackHistoryId}
+                      onShareSuccess={handleShareBonusApplied}
+                    />
+                  </div>
+                  
+                  {/* Bonus info for gift winners */}
+                  <div className="mt-2 text-center">
+                    <p className="text-xs sm:text-sm text-green-600 font-medium">
+                      🎁 Share your win to get your next crack 30 minutes earlier!
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           </div>

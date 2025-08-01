@@ -355,7 +355,7 @@ export class DatabaseService {
     });
     
     return prizes || [];
-  }
+  };
 
   // Admin settings
   static async getAdminSetting(key: string): Promise<any> {
@@ -512,6 +512,106 @@ export class DatabaseService {
       console.error('Error sending prize notification:', error);
       console.error('📧 Notification error details:', error);
       // Don't throw error - notification failure shouldn't break the main flow
+      return false;
+    }
+  };
+
+  // Share bonus system
+  static async updateCrackHistoryShareStatus(crackHistoryId: string) {
+    try {
+      // First, get the current crack history record
+      const { data: crackHistory, error: fetchError } = await supabase
+        .from('crack_history')
+        .select('prize_data')
+        .eq('id', crackHistoryId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // Parse existing prize_data or create new object
+      let prizeData = {};
+      if (crackHistory.prize_data) {
+        prizeData = typeof crackHistory.prize_data === 'string' 
+          ? JSON.parse(crackHistory.prize_data) 
+          : crackHistory.prize_data;
+      }
+
+      // Add share bonus applied flag
+      prizeData = {
+        ...prizeData,
+        share_bonus_applied: true,
+        share_bonus_applied_at: new Date().toISOString()
+      };
+
+      // Update the record
+      const { error: updateError } = await supabase
+        .from('crack_history')
+        .update({ prize_data: prizeData })
+        .eq('id', crackHistoryId);
+
+      if (updateError) throw updateError;
+
+      return true;
+    } catch (error) {
+      console.error('Error updating crack history share status:', error);
+      throw error;
+    }
+  }
+
+  static async adjustLastCrackTime(userId: string, minutesToSubtract: number) {
+    try {
+      // Get current user profile
+      const { data: userProfile, error: fetchError } = await supabase
+        .from('user_profiles')
+        .select('last_crack_time')
+        .eq('id', userId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (!userProfile.last_crack_time) {
+        console.warn('User has no last_crack_time, cannot adjust');
+        return false;
+      }
+
+      // Calculate new time (subtract minutes)
+      const currentTime = new Date(userProfile.last_crack_time);
+      const adjustedTime = new Date(currentTime.getTime() - (minutesToSubtract * 60 * 1000));
+
+      // Update the user profile
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ last_crack_time: adjustedTime.toISOString() })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+
+      return true;
+    } catch (error) {
+      console.error('Error adjusting last crack time:', error);
+      throw error;
+    }
+  }
+
+  static async checkShareBonusApplied(crackHistoryId: string): Promise<boolean> {
+    try {
+      const { data: crackHistory, error } = await supabase
+        .from('crack_history')
+        .select('prize_data')
+        .eq('id', crackHistoryId)
+        .single();
+
+      if (error) throw error;
+
+      if (!crackHistory.prize_data) return false;
+
+      const prizeData = typeof crackHistory.prize_data === 'string' 
+        ? JSON.parse(crackHistory.prize_data) 
+        : crackHistory.prize_data;
+
+      return prizeData.share_bonus_applied === true;
+    } catch (error) {
+      console.error('Error checking share bonus status:', error);
       return false;
     }
   }
