@@ -143,13 +143,13 @@ export const Leaderboard: React.FC = () => {
                 alt="LuckyCookie.io Logo" 
                 className="h-12 w-12 mr-3 object-contain"
               />
-              <h1 className="text-4xl font-bold text-gray-800">LuckyCookie</h1>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">LuckyCookie</h1>
             </div>
             <div className="flex items-center justify-center mb-2">
               <Trophy className="h-8 w-8 text-yellow-500 mr-3" />
-              <h2 className="text-3xl font-bold text-gray-800">Leaderboard</h2>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Leaderboard</h2>
             </div>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
               See who's cracking the most cookies and winning the biggest prizes! 
               Premium crackers get the top spots with exclusive rewards.
             </p>
@@ -160,19 +160,19 @@ export const Leaderboard: React.FC = () => {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-2xl shadow-lg p-2 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
             <Users className="h-8 w-8 text-blue-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-blue-600">{leaderboardData?.total_users || 0}</p>
             <p className="text-gray-600">Total Players</p>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-lg p-2 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
             <Crown className="h-8 w-8 text-purple-500 mx-auto mb-2" />
             <p className="text-2xl font-bold text-purple-600">{leaderboardData?.premium_crackers.length || 0}</p>
             <p className="text-gray-600">Premium Champions</p>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-lg p-2 text-center">
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
             <Clock className="h-8 w-8 text-green-500 mx-auto mb-2" />
             <p className="text-sm font-medium text-green-600">
               {leaderboardData?.last_updated ? 
@@ -189,9 +189,9 @@ export const Leaderboard: React.FC = () => {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <Crown className="h-10 w-10 text-purple-500 mr-3" />
-              <h3 className="text-3xl font-bold text-gray-800">Premium Champions</h3>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Premium Champions</h3>
             </div>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               The elite crackers who've purchased premium cookies and won exclusive prizes
             </p>
           </div>
@@ -216,27 +216,27 @@ export const Leaderboard: React.FC = () => {
                   
                   {cracker ? (
                     <>
-                      <h4 className="font-bold text-gray-800 mb-1 sm:mb-2 text-xs sm:text-sm break-all">
+                      <h4 className="font-bold text-gray-800 mb-1 sm:mb-2 text-xs sm:text-sm md:text-base break-all">
                         {formatEmail(cracker.email)}
                       </h4>
                       <div className="flex items-center justify-center mb-1 sm:mb-2">
                         <Cookie className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500 mr-1" />
-                        <span className="text-sm sm:text-base md:text-lg font-bold text-purple-600">
+                        <span className="text-xs sm:text-sm md:text-base font-bold text-purple-600">
                           {cracker.premium_cracks}
                         </span>
                       </div>
-                      <p className="text-xs sm:text-xs text-gray-600">Premium Cracks</p>
+                      <p className="text-xs text-gray-600">Premium Cracks</p>
                     </>
                   ) : (
                     <>
-                      <h4 className="font-bold text-gray-500 mb-1 sm:mb-2 text-xs sm:text-sm">
+                      <h4 className="font-bold text-gray-500 mb-1 sm:mb-2 text-xs sm:text-sm md:text-base">
                         Awaiting Champion
                       </h4>
                       <div className="flex items-center justify-center mb-1 sm:mb-2">
                         <Cookie className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1" />
-                        <span className="text-sm sm:text-base md:text-lg font-bold text-gray-400">0</span>
+                        <span className="text-xs sm:text-sm md:text-base font-bold text-gray-400">0</span>
                       </div>
-                      <p className="text-xs sm:text-xs text-gray-500">Premium Cracks</p>
+                      <p className="text-xs text-gray-500">Premium Cracks</p>
                     </>
                   )}
                 </div>
@@ -250,9 +250,9 @@ export const Leaderboard: React.FC = () => {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
               <Cookie className="h-10 w-10 text-orange-500 mr-3" />
-              <h3 className="text-3xl font-bold text-gray-800">Free Cookie Masters</h3>
+              <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Free Cookie Masters</h3>
             </div>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600">
               Skilled players climbing the ranks with free cookies and lucky wins
             </p>
           </div>
@@ -266,13 +266,13 @@ export const Leaderboard: React.FC = () => {
                 >
                   <div className="flex items-center">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-orange-100 rounded-full flex items-center justify-center mr-2 sm:mr-3 md:mr-4">
-                      <span className="text-xs sm:text-sm md:text-lg font-bold text-orange-600">#{cracker.rank}</span>
+                      <span className="text-xs sm:text-sm md:text-base font-bold text-orange-600">#{cracker.rank}</span>
                     </div>
                     <div>
-                      <h4 className="font-bold text-gray-800 mb-1 text-sm sm:text-base break-all">
+                      <h4 className="font-bold text-gray-800 mb-1 text-xs sm:text-sm md:text-base break-all">
                         {formatEmail(cracker.email)}
                       </h4>
-                      <p className="text-xs sm:text-sm text-gray-600">Cookie Master</p>
+                      <p className="text-xs text-gray-600">Cookie Master</p>
                     </div>
                   </div>
                   
@@ -280,18 +280,18 @@ export const Leaderboard: React.FC = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1 flex-col sm:flex-row">
                         <Cookie className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 mr-0 sm:mr-1 mb-1 sm:mb-0" />
-                        <span className="text-sm sm:text-base md:text-lg font-bold text-orange-600">
+                        <span className="text-xs sm:text-sm md:text-base font-bold text-orange-600">
                           {cracker.total_cracks}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600 hidden sm:block">Total Cracks</p>
+                      <p className="text-xs text-gray-600 hidden sm:block">Cracks</p>
                       <p className="text-xs text-gray-600 sm:hidden">Cracks</p>
                     </div>
                     
                     <div className="text-center">
                       <div className="flex items-center justify-center mb-1 flex-col sm:flex-row">
                         <Gift className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mr-0 sm:mr-1 mb-1 sm:mb-0" />
-                        <span className="text-sm sm:text-base md:text-lg font-bold text-green-600">
+                        <span className="text-xs sm:text-sm md:text-base font-bold text-green-600">
                           {cracker.total_wins}
                         </span>
                       </div>
@@ -304,8 +304,8 @@ export const Leaderboard: React.FC = () => {
           ) : (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🍪</div>
-              <h4 className="text-2xl font-bold text-gray-800 mb-4">No Free Crackers Yet</h4>
-              <p className="text-gray-600">
+              <h4 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-4">No Free Crackers Yet</h4>
+              <p className="text-sm sm:text-base text-gray-600">
                 Be the first to crack some free cookies and claim your spot on the leaderboard!
               </p>
             </div>
@@ -315,25 +315,25 @@ export const Leaderboard: React.FC = () => {
         {/* Call to Action */}
         <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-3xl p-4 sm:p-6 md:p-8 text-center border-2 border-purple-200">
           <div className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 md:mb-4">💡</div>
-          <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 mb-2 sm:mb-3 md:mb-4">
+          <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 mb-2 sm:mb-3 md:mb-4">
             Want to Join the Premium Champions?
           </h3>
-          <p className="text-sm sm:text-base text-gray-700 mb-4 sm:mb-5 md:mb-6 max-w-2xl mx-auto">
+          <p className="text-xs sm:text-sm md:text-base text-gray-700 mb-4 sm:mb-5 md:mb-6 max-w-2xl mx-auto">
             Crack premium cookies to secure your spot in the top 5 and win amazing extra gifts! 
             Premium crackers get exclusive prizes and guaranteed rewards.
           </p>
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4">
             <div className="flex items-center bg-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 rounded-lg shadow-sm">
               <Crown className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-purple-500 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700">Guaranteed Prizes</span>
+              <span className="text-xs font-medium text-gray-700">Guaranteed Prizes</span>
             </div>
             <div className="flex items-center bg-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 rounded-lg shadow-sm">
               <Trophy className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-yellow-500 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700">Top 5 Ranking</span>
+              <span className="text-xs font-medium text-gray-700">Top 5 Ranking</span>
             </div>
             <div className="flex items-center bg-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 rounded-lg shadow-sm">
               <Gift className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-green-500 mr-1 sm:mr-2" />
-              <span className="text-xs sm:text-sm font-medium text-gray-700">Exclusive Rewards</span>
+              <span className="text-xs font-medium text-gray-700">Exclusive Rewards</span>
             </div>
           </div>
         </div>
@@ -348,9 +348,9 @@ export const Leaderboard: React.FC = () => {
               alt="LuckyCookie.io Logo" 
               className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 mr-1 sm:mr-2 object-contain"
             />
-            <span className="text-lg sm:text-xl font-bold text-gray-800">LuckyCookie</span>
+            <span className="text-base sm:text-lg md:text-xl font-bold text-gray-800">LuckyCookie</span>
           </div>
-          <p className="text-gray-600 text-xs sm:text-sm">
+          <p className="text-gray-600 text-xs">
             Crack cookies, win prizes, and climb the leaderboard! 
             Updated in real-time as players crack their way to victory.
           </p>

@@ -31,7 +31,7 @@ if (!isValidUrl || !isValidKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
-    persistSession: false,
+    persistSession: true,
     detectSessionInUrl: true
   },
   global: {
