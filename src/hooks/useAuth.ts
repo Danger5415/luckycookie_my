@@ -79,7 +79,22 @@ export const useAuth = () => {
           return;
         }
         
-        const { data: { session }, error: sessionError } = sessionResult as any;
+        // Safely extract session data with defensive checks
+        let session = null;
+        let sessionError = null;
+        
+        try {
+          if (sessionResult && typeof sessionResult === 'object') {
+            if (sessionResult.data && typeof sessionResult.data === 'object') {
+              session = sessionResult.data.session || null;
+            }
+            sessionError = sessionResult.error || null;
+          }
+        } catch (extractionError) {
+          console.error('❌ Error extracting session data:', extractionError);
+          sessionError = extractionError;
+        }
+        
         console.log('🔍 Session data:', session ? 'Session found' : 'No session', 'Error:', sessionError ? sessionError.message : 'None');
         
         // Handle invalid refresh token errors
@@ -89,7 +104,11 @@ export const useAuth = () => {
           sessionError.message?.includes('session has expired')
         )) {
           console.log('🔄 Invalid/expired session, clearing auth state...');
-          await supabase.auth.signOut();
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.warn('⚠️ Error during signOut:', signOutError);
+          }
           if (mounted) setUser(null);
           throw new Error('Session expired. Please log in again.');
         }
@@ -100,7 +119,9 @@ export const useAuth = () => {
         }
         
         console.log('👤 Setting user state:', session?.user ? `User: ${session.user.email}` : 'No user');
-        setUser(session?.user ?? null);
+        if (mounted) {
+          setUser(session?.user ?? null);
+        }
         
         if (session?.user) {
           try {
@@ -121,8 +142,10 @@ export const useAuth = () => {
         if (!mounted) return;
         
         console.error('❌ Auth initialization failed:', error.message);
-        setError(error.message || 'Authentication failed. Please refresh the page.');
-        setUser(null);
+        if (mounted) {
+          setError(error.message || 'Authentication failed. Please refresh the page.');
+          setUser(null);
+        }
       } finally {
         if (mounted) {
           console.log('🏁 Finalizing auth initialization - clearing loading state');
@@ -132,12 +155,14 @@ export const useAuth = () => {
           
           // Final state logging
           setTimeout(() => {
-            console.log('🏁 Final auth state:', { 
-              user: user ? `${user.email} (${user.id.slice(0, 8)}...)` : null, 
-              loading: false, 
-              error: error ? error.slice(0, 50) + '...' : null, 
-              initialized: true 
-            });
+            if (mounted) {
+              console.log('🏁 Final auth state:', { 
+                user: user ? `${user.email} (${user.id.slice(0, 8)}...)` : null, 
+                loading: false, 
+                error: error ? error.slice(0, 50) + '...' : null, 
+                initialized: true 
+              });
+            }
           }, 100);
         }
       }
@@ -154,8 +179,10 @@ export const useAuth = () => {
         console.log('🔄 Auth state change event:', event, session ? `User: ${session.user?.email}` : 'No session');
         
         try {
-          setUser(session?.user ?? null);
-          setError(null);
+          if (mounted) {
+            setUser(session?.user ?? null);
+            setError(null);
+          }
           
           if (session?.user && event === 'SIGNED_IN') {
             try {
@@ -168,7 +195,9 @@ export const useAuth = () => {
           }
         } catch (error: any) {
           console.error('❌ Auth state change error:', error.message);
-          setError(error.message || 'Authentication error occurred');
+          if (mounted) {
+            setError(error.message || 'Authentication error occurred');
+          }
         }
       }
     );
