@@ -7,6 +7,7 @@ import { CookieAnimation } from '../components/CookieAnimation';
 import { CountdownTimer } from '../components/CountdownTimer';
 import { ShareButton } from '../components/ShareButton';
 import { FreePrizeClaimForm, type FreePrizeClaimData } from '../components/FreePrizeClaimForm';
+import { BonusTasks } from '../components/BonusTasks';
 import { getRandomFreePrize, type FreePrize } from '../lib/prizes';
 import { User, Crown, History, Trophy } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export const Home: React.FC = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showClaimForm, setShowClaimForm] = useState(false);
+  const [isApplyingShareBonus, setIsApplyingShareBonus] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
@@ -124,30 +126,49 @@ export const Home: React.FC = () => {
   const handleShareBonusApplied = async (crackHistoryId: string) => {
     if (!user) return;
 
+    console.log('🎁 Starting share bonus application for crack:', crackHistoryId);
+    setIsApplyingShareBonus(true);
+
     try {
       // Check if bonus has already been applied
+      console.log('🔍 Checking if share bonus already applied...');
       const bonusAlreadyApplied = await DatabaseService.checkShareBonusApplied(crackHistoryId);
       
       if (bonusAlreadyApplied) {
+        console.log('⚠️ Share bonus already applied for this win');
         alert('Share bonus has already been applied for this win!');
         return;
       }
 
       // Apply the share bonus (reduce cooldown by 30 minutes)
+      console.log('⏰ Applying share bonus - reducing cooldown by 30 minutes...');
       await DatabaseService.adjustLastCrackTime(user.id, 30);
       
       // Mark this win as having granted the bonus
+      console.log('✅ Marking crack history as bonus applied...');
       await DatabaseService.updateCrackHistoryShareStatus(crackHistoryId);
       
       // Show success message
+      console.log('🎉 Share bonus applied successfully');
       alert('🎉 Share bonus applied! Your next crack is now available 30 minutes earlier!');
       
       // Refresh user profile to update the countdown
+      console.log('🔄 Refreshing user profile to update countdown...');
       await fetchUserProfile();
+      console.log('✅ User profile refreshed after share bonus');
       
     } catch (error) {
-      console.error('Error applying share bonus:', error);
+      console.error('❌ Error applying share bonus:', error);
       alert('Error applying share bonus. Please try again.');
+    } finally {
+      console.log('🏁 Share bonus application completed - clearing loading state');
+      setIsApplyingShareBonus(false);
+      
+      // Double-check that loading state is cleared
+      setTimeout(() => {
+        console.log('🔍 Final share bonus state check - isApplyingShareBonus should be false');
+        setIsApplyingShareBonus(false);
+      }, 100);
     }
   };
 
@@ -354,7 +375,9 @@ export const Home: React.FC = () => {
                       content={getShareContent()!}
                       variant="button"
                       size="lg"
-                      className="bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600"
+                      className={`bg-gradient-to-r from-green-500 to-blue-500 text-white hover:from-green-600 hover:to-blue-600 ${
+                        isApplyingShareBonus ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                       isWin={true}
                       crackHistoryId={lastResult.crackHistoryId}
                       onShareSuccess={handleShareBonusApplied}
@@ -362,11 +385,19 @@ export const Home: React.FC = () => {
                   </div>
                   
                   {/* Bonus info for gift winners */}
-                  <div className="mt-2 text-center">
-                    <p className="text-xs sm:text-sm text-green-600 font-medium">
-                      🎁 Share your win to get your next crack 30 minutes earlier!
-                    </p>
-                  </div>
+                  {!isApplyingShareBonus ? (
+                    <div className="mt-2 text-center">
+                      <p className="text-xs sm:text-sm text-green-600 font-medium">
+                        🎁 Share your win to get your next crack 30 minutes earlier!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="mt-2 text-center">
+                      <p className="text-xs sm:text-sm text-blue-600 font-medium">
+                        ⏳ Applying share bonus...
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -401,6 +432,9 @@ export const Home: React.FC = () => {
             </p>
           </Link>
         </div>
+
+        {/* Bonus Tasks Section */}
+        <BonusTasks onBonusApplied={fetchUserProfile} />
       </main>
       
       {/* Free Prize Claim Form Modal */}

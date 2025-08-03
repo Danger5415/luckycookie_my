@@ -519,6 +519,8 @@ export class DatabaseService {
   // Share bonus system
   static async updateCrackHistoryShareStatus(crackHistoryId: string) {
     try {
+      console.log('📝 Updating crack history share status for ID:', crackHistoryId);
+      
       // First, get the current crack history record
       const { data: crackHistory, error: fetchError } = await supabase
         .from('crack_history')
@@ -527,6 +529,7 @@ export class DatabaseService {
         .single();
 
       if (fetchError) throw fetchError;
+      console.log('📝 Retrieved crack history record');
 
       // Parse existing prize_data or create new object
       let prizeData = {};
@@ -542,6 +545,7 @@ export class DatabaseService {
         share_bonus_applied: true,
         share_bonus_applied_at: new Date().toISOString()
       };
+      console.log('📝 Updated prize data with share bonus flag');
 
       // Update the record
       const { error: updateError } = await supabase
@@ -550,16 +554,19 @@ export class DatabaseService {
         .eq('id', crackHistoryId);
 
       if (updateError) throw updateError;
+      console.log('✅ Successfully updated crack history share status');
 
       return true;
     } catch (error) {
-      console.error('Error updating crack history share status:', error);
+      console.error('❌ Error updating crack history share status:', error);
       throw error;
     }
   }
 
   static async adjustLastCrackTime(userId: string, minutesToSubtract: number) {
     try {
+      console.log('⏰ Adjusting last crack time for user:', userId, 'by', minutesToSubtract, 'minutes');
+      
       // Get current user profile
       const { data: userProfile, error: fetchError } = await supabase
         .from('user_profiles')
@@ -568,15 +575,17 @@ export class DatabaseService {
         .single();
 
       if (fetchError) throw fetchError;
+      console.log('⏰ Retrieved user profile for time adjustment');
 
       if (!userProfile.last_crack_time) {
-        console.warn('User has no last_crack_time, cannot adjust');
+        console.warn('⚠️ User has no last_crack_time, cannot adjust');
         return false;
       }
 
       // Calculate new time (subtract minutes)
       const currentTime = new Date(userProfile.last_crack_time);
       const adjustedTime = new Date(currentTime.getTime() - (minutesToSubtract * 60 * 1000));
+      console.log('⏰ Calculated adjusted time:', adjustedTime.toISOString());
 
       // Update the user profile
       const { error: updateError } = await supabase
@@ -585,16 +594,19 @@ export class DatabaseService {
         .eq('id', userId);
 
       if (updateError) throw updateError;
+      console.log('✅ Successfully adjusted last crack time');
 
       return true;
     } catch (error) {
-      console.error('Error adjusting last crack time:', error);
+      console.error('❌ Error adjusting last crack time:', error);
       throw error;
     }
   }
 
   static async checkShareBonusApplied(crackHistoryId: string): Promise<boolean> {
     try {
+      console.log('🔍 Checking share bonus status for crack:', crackHistoryId);
+      
       const { data: crackHistory, error } = await supabase
         .from('crack_history')
         .select('prize_data')
@@ -609,10 +621,60 @@ export class DatabaseService {
         ? JSON.parse(crackHistory.prize_data) 
         : crackHistory.prize_data;
 
-      return prizeData.share_bonus_applied === true;
+      const bonusApplied = prizeData.share_bonus_applied === true;
+      console.log('🔍 Share bonus status:', bonusApplied ? 'Already applied' : 'Not applied');
+      
+      return bonusApplied;
     } catch (error) {
-      console.error('Error checking share bonus status:', error);
+      console.error('❌ Error checking share bonus status:', error);
       return false;
+    }
+  }
+
+  // Bonus task system
+  static async applyBonus(userId: string, bonusType: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video') {
+    try {
+      console.log('🎁 Applying bonus:', bonusType, 'for user:', userId);
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/apply-bonus`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          bonus_type: bonusType,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to apply bonus');
+      }
+
+      const result = await response.json();
+      console.log('✅ Bonus applied successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error applying bonus:', error);
+      throw error;
+    }
+  }
+
+  static async getUserClaimedBonuses(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('user_bonuses')
+        .select('bonus_type, claimed_at')
+        .eq('user_id', userId);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching user bonuses:', error);
+      return [];
     }
   }
 }
