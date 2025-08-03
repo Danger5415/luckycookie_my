@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { createUserProfile } from '../lib/auth';
@@ -9,11 +10,9 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  useEffect(() => {
+  const initializeAuth = useCallback(async () => {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
-    
-    const initializeAuth = async () => {
       console.log('🔄 [AUTH] Starting auth initialization...', {
         timestamp: new Date().toISOString(),
         mounted,
@@ -195,29 +194,34 @@ export const useAuth = () => {
           console.log('🚫 [AUTH] Component unmounted, skipping state updates in finally block');
         }
       }
+    
+    return () => {
+      mounted = false;
+      clearTimeout(initializationTimeout);
     };
+  }, []);
+
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
     
     // Start initialization
     console.log('🚀 [AUTH] Starting auth initialization process');
-    initializeAuth();
+    initializeAuth().then((cleanupFn) => {
+      cleanup = cleanupFn;
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return;
-        
         console.log('🔄 [AUTH] Auth state change event:', event, session ? `User: ${session.user?.email}` : 'No session', {
-          mounted,
           currentUser: user?.email || 'none',
           timestamp: new Date().toISOString()
         });
         
         try {
-          if (mounted) {
-            setUser(session?.user ?? null);
-            setError(null);
-            console.log('✅ [AUTH] Auth state change - user state updated');
-          }
+          setUser(session?.user ?? null);
+          setError(null);
+          console.log('✅ [AUTH] Auth state change - user state updated');
           
           if (session?.user && event === 'SIGNED_IN') {
             try {
@@ -231,26 +235,48 @@ export const useAuth = () => {
           }
         } catch (error: any) {
           console.error('❌ [AUTH] Auth state change error:', error.message);
-          if (mounted) {
-            setError(error.message || 'Authentication error occurred');
-            console.log('❌ [AUTH] Error set during auth state change');
-          }
+          setError(error.message || 'Authentication error occurred');
+          console.log('❌ [AUTH] Error set during auth state change');
         }
       }
     );
 
     return () => {
       console.log('🧹 [AUTH] Cleaning up auth hook', {
-        mounted,
         finalUser: user?.email || 'none',
         finalLoading: loading,
         finalInitialized: initialized
       });
-      mounted = false;
-      clearTimeout(initializationTimeout);
+      cleanup?.();
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initializeAuth]);
+
+  // Listen for tab visibility changes to re-authenticate when tab becomes visible
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('👁️ [AUTH] Visibility change detected:', {
+        visibilityState: document.visibilityState,
+        currentError: !!error,
+        currentLoading: loading,
+        currentInitialized: initialized,
+        timestamp: new Date().toISOString()
+      });
+
+      // If the tab becomes visible and we're in an error state (likely from a timeout),
+      // silently re-initialize authentication
+      if (document.visibilityState === 'visible' && error && initialized) {
+        console.log('🔄 [AUTH] Tab became visible with error state - re-initializing auth silently');
+        initializeAuth();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [error, initialized, initializeAuth]);
 
   // Debug logging for state changes
   useEffect(() => {
