@@ -14,69 +14,102 @@ export const useAuth = () => {
     let initializationTimeout: NodeJS.Timeout;
     
     const initializeAuth = async () => {
+      console.log('🔄 [AUTH] Starting auth initialization...', {
+        timestamp: new Date().toISOString(),
+        mounted,
+        currentState: { user: !!user, loading, error: !!error, initialized }
+      });
+      
       try {
-        console.log('🔄 Starting auth initialization...');
         setLoading(true);
         setError(null);
+        console.log('🔍 [AUTH] Initial state set - loading: true, error: null');
         
         // Check if Supabase is configured
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
         
-        console.log('🔍 Environment variables check:');
-        console.log('Supabase URL:', supabaseUrl ? 'Set' : 'Missing');
-        console.log('Supabase Anon Key:', supabaseKey ? 'Set' : 'Missing');
+        console.log('🔍 [AUTH] Environment check - URL:', supabaseUrl ? 'Set' : 'Missing', 'Key:', supabaseKey ? 'Set' : 'Missing');
         
         if (!supabaseUrl || !supabaseKey) {
-          console.error('❌ Supabase configuration missing');
+          console.error('❌ [AUTH] Supabase configuration missing');
           throw new Error('Supabase configuration missing. Please connect to Supabase.');
         }
         
-        console.log('✅ Environment variables loaded successfully');
+        console.log('✅ [AUTH] Environment variables validated');
         
-        // Set a timeout to prevent infinite loading
+        // Set timeout to prevent infinite loading
         initializationTimeout = setTimeout(() => {
           if (mounted) {
-            console.error('⏰ Auth initialization timeout');
-            setError('Authentication initialization timed out. Please refresh the page.');
+            console.error('⏰ [AUTH] Auth initialization timeout after 30 seconds', {
+              mounted,
+              currentState: { user: !!user, loading, error: !!error, initialized }
+            });
+            setError('Authentication timed out. Please refresh the page.');
             setLoading(false);
             setInitialized(true);
           }
-        }, 25000); // 25 second timeout
+        }, 30000); // 30 second timeout
         
-        console.log('🔐 About to call supabase.auth.getSession()...');
+        console.log('🔐 [AUTH] Calling supabase.auth.getSession()...');
         const sessionStartTime = Date.now();
         
-        // Get session with timeout
-        const sessionPromise = supabase.auth.getSession(); // This is the promise that's not resolving in time
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session request timed out')), 15000); // Increased timeout to 15 seconds
+        // Get session with race condition timeout
+        const sessionPromise = supabase.auth.getSession();
+        const sessionTimeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => {
+            console.error('⏰ [AUTH] Session request timed out after 10 seconds');
+            reject(new Error('Session request timed out after 10 seconds'));
+          }, 10000);
         });
         
-        // Increase timeout to 20 seconds for slower connections
-        const extendedTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session request timed out after 30 seconds')), 30000);
-        });
-        
-        const sessionResult = await Promise.race([sessionPromise, extendedTimeoutPromise]) as any;
-        
-        const sessionEndTime = Date.now();
-        console.log(`📦 Session result received after ${sessionEndTime - sessionStartTime}ms`);
-        
-        // Check if the result is an error from timeout
-        if (sessionResult instanceof Error) {
-          console.error('❌ Session request timed out:', sessionResult.message);
-          throw sessionResult;
+        let sessionResult;
+        try {
+          sessionResult = await Promise.race([sessionPromise, sessionTimeoutPromise]);
+          console.log('✅ [AUTH] Session promise resolved successfully');
+        } catch (timeoutError) {
+          console.error('❌ [AUTH] Session timeout error:', timeoutError);
+          // Try one more time with a direct approach
+          console.log('🔄 [AUTH] Attempting direct session retrieval...');
+          try {
+            sessionResult = await supabase.auth.getSession();
+            console.log('✅ [AUTH] Direct session retrieval succeeded');
+          } catch (directError) {
+            console.error('❌ [AUTH] Direct session retrieval also failed:', directError);
+            throw timeoutError; // Throw the original timeout error
+          }
         }
         
+        const sessionEndTime = Date.now();
+        console.log(`📦 [AUTH] Session retrieved in ${sessionEndTime - sessionStartTime}ms`);
+        
         if (!mounted) {
-          console.log('🚫 Component unmounted, aborting initialization');
+          console.log('🚫 [AUTH] Component unmounted during session retrieval');
           return;
         }
         
-        console.log('🔍 Processing session result...');
+        // Safely extract session data with defensive checks
+        let session = null;
+        let sessionError = null;
         
-        const { data: { session }, error: sessionError } = sessionResult;
+        try {
+          if (sessionResult && typeof sessionResult === 'object') {
+            if (sessionResult.data && typeof sessionResult.data === 'object') {
+              session = sessionResult.data.session || null;
+            }
+            sessionError = sessionResult.error || null;
+          }
+          console.log('📊 [AUTH] Session data extracted:', {
+            hasSession: !!session,
+            hasError: !!sessionError,
+            sessionUserId: session?.user?.id?.slice(0, 8) + '...' || 'none'
+          });
+        } catch (extractionError) {
+          console.error('❌ [AUTH] Error extracting session data:', extractionError);
+          sessionError = extractionError;
+        }
+        
+        console.log('🔍 [AUTH] Session data:', session ? 'Session found' : 'No session', 'Error:', sessionError ? sessionError.message : 'None');
         
         // Handle invalid refresh token errors
         if (sessionError && (
@@ -84,52 +117,88 @@ export const useAuth = () => {
           sessionError.message?.includes('refresh_token_not_found') ||
           sessionError.message?.includes('session has expired')
         )) {
-          console.log('🔄 Invalid refresh token, signing out...');
-          await supabase.auth.signOut();
+          console.log('🔄 [AUTH] Invalid/expired session, clearing auth state...');
+          try {
+            await supabase.auth.signOut();
+            console.log('✅ [AUTH] Successfully signed out expired session');
+          } catch (signOutError) {
+            console.warn('⚠️ [AUTH] Error during signOut:', signOutError);
+          }
           if (mounted) setUser(null);
-          return;
+          throw new Error('Session expired. Please log in again.');
         }
         
         if (sessionError) {
-          console.error('❌ Session error:', sessionError);
+          console.error('❌ [AUTH] Session error:', sessionError.message);
           throw sessionError;
         }
         
-        console.log('👤 Setting user:', session?.user ? 'User found' : 'No user');
-        setUser(session?.user ?? null);
+        console.log('👤 [AUTH] Setting user state:', session?.user ? `User: ${session.user.email}` : 'No user');
+        if (mounted) {
+          setUser(session?.user ?? null);
+          console.log('✅ [AUTH] User state updated in component');
+        }
         
         if (session?.user) {
           try {
-            console.log('👤 About to create/update user profile...');
+            console.log('👤 [AUTH] Creating/updating user profile...');
             const profileStartTime = Date.now();
             await createUserProfile(session.user);
             const profileEndTime = Date.now();
-            console.log(`✅ User profile created/updated after ${profileEndTime - profileStartTime}ms`);
+            console.log(`✅ [AUTH] Profile updated in ${profileEndTime - profileStartTime}ms`);
           } catch (profileError) {
-            console.warn('⚠️ Profile creation warning:', profileError);
+            console.warn('⚠️ [AUTH] Profile creation warning (non-critical):', profileError);
             // Don't throw here, user can still use the app
           }
         }
         
-        console.log('✅ Auth initialization completed successfully');
+        console.log('✅ [AUTH] Auth initialization completed successfully');
         
       } catch (error: any) {
         if (!mounted) return;
         
-        console.error('❌ Auth initialization error:', error);
-        setError(error.message || 'Authentication initialization failed');
-        setUser(null);
+        console.error('❌ [AUTH] Auth initialization failed:', error.message, {
+          mounted,
+          errorType: error.constructor.name,
+          stack: error.stack?.split('\n').slice(0, 3)
+        });
+        if (mounted) {
+          setError(error.message || 'Authentication failed. Please refresh the page.');
+          setUser(null);
+          console.log('❌ [AUTH] Error state set in component');
+        }
       } finally {
         if (mounted) {
-          console.log('🏁 Finalizing auth initialization...');
+          console.log('🏁 [AUTH] Finalizing auth initialization - clearing loading state', {
+            mounted,
+            aboutToSetLoading: false,
+            aboutToSetInitialized: true
+          });
           clearTimeout(initializationTimeout);
           setLoading(false);
           setInitialized(true);
+          console.log('🏁 [AUTH] Loading and initialized state updated');
+          
+          // Final state logging
+          setTimeout(() => {
+            if (mounted) {
+              console.log('🏁 [AUTH] Final auth state check:', { 
+                user: user ? `${user.email} (${user.id.slice(0, 8)}...)` : null, 
+                loading: false, 
+                error: error ? error.slice(0, 50) + '...' : null, 
+                initialized: true,
+                timestamp: new Date().toISOString()
+              });
+            }
+          }, 100);
+        } else {
+          console.log('🚫 [AUTH] Component unmounted, skipping state updates in finally block');
         }
       }
     };
     
     // Start initialization
+    console.log('🚀 [AUTH] Starting auth initialization process');
     initializeAuth();
 
     // Listen for auth changes
@@ -137,34 +206,62 @@ export const useAuth = () => {
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('🔄 Auth state change:', event);
+        console.log('🔄 [AUTH] Auth state change event:', event, session ? `User: ${session.user?.email}` : 'No session', {
+          mounted,
+          currentUser: user?.email || 'none',
+          timestamp: new Date().toISOString()
+        });
         
         try {
-          setUser(session?.user ?? null);
-          setError(null);
+          if (mounted) {
+            setUser(session?.user ?? null);
+            setError(null);
+            console.log('✅ [AUTH] Auth state change - user state updated');
+          }
           
           if (session?.user && event === 'SIGNED_IN') {
             try {
+              console.log('👤 [AUTH] Auth state change - updating profile for signed in user');
               await createUserProfile(session.user);
+              console.log('✅ [AUTH] Profile updated during auth state change');
             } catch (profileError) {
-              console.warn('Profile creation warning:', profileError);
+              console.warn('⚠️ [AUTH] Profile update warning during auth change:', profileError);
               // Don't throw here, user can still use the app
             }
           }
         } catch (error: any) {
-          console.error('Auth state change error:', error);
-          setError(error.message || 'Authentication error occurred');
+          console.error('❌ [AUTH] Auth state change error:', error.message);
+          if (mounted) {
+            setError(error.message || 'Authentication error occurred');
+            console.log('❌ [AUTH] Error set during auth state change');
+          }
         }
       }
     );
 
     return () => {
-      console.log('🧹 Cleaning up auth hook...');
+      console.log('🧹 [AUTH] Cleaning up auth hook', {
+        mounted,
+        finalUser: user?.email || 'none',
+        finalLoading: loading,
+        finalInitialized: initialized
+      });
       mounted = false;
       clearTimeout(initializationTimeout);
       subscription.unsubscribe();
     };
   }, []);
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔍 [AUTH] State update detected:', { 
+      user: user ? `${user.email} (${user.id.slice(0, 8)}...)` : null, 
+      loading, 
+      error: error ? error.slice(0, 50) + '...' : null, 
+      initialized,
+      timestamp: new Date().toISOString()
+    });
+  }, [user, loading, error, initialized]);
+  
   return { user, loading, error, initialized };
 };
