@@ -36,7 +36,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         description: 'Subscribe to our YouTube channel and get an instant free crack!',
         reward: 'Reset cooldown completely',
         icon: <Youtube className="h-5 w-5 text-red-500" />,
-        url: 'https://youtube.com/@placeholder', // Placeholder URL
+        url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA', // Placeholder URL
         claimed: claimedTypes.has('youtube_subscribe')
       },
       {
