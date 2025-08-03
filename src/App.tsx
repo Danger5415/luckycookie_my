@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { LoadingSpinner } from './components/LoadingSpinner';
 
 // Pages
+import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { Dashboard } from './pages/Dashboard';
@@ -42,6 +43,12 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Landing Page - Public Route */}
+        <Route 
+          path="/landing" 
+          element={<Landing />} 
+        />
+        
         {/* Public Routes */}
         <Route 
           path="/login" 
@@ -103,13 +110,13 @@ function App() {
         {/* Redirect root to appropriate page */}
         <Route 
           path="/" 
-          element={<Navigate to={user ? "/home" : "/login"} replace />} 
+          element={<Navigate to={user ? "/home" : "/landing"} replace />} 
         />
         
         {/* Catch all route */}
         <Route 
           path="*" 
-          element={<Navigate to={user ? "/home" : "/login"} replace />} 
+          element={<Navigate to={user ? "/home" : "/landing"} replace />} 
         />
       </Routes>
     </Router>
