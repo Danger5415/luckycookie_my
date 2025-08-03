@@ -709,4 +709,54 @@ export class DatabaseService {
       throw error;
     }
   }
+
+  // Fetch latest X (Twitter) tweet
+  static async fetchLatestTweet() {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-tweet`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch latest tweet');
+      }
+
+      const result = await response.json();
+      return result.tweet;
+    } catch (error) {
+      console.error('Error fetching latest tweet:', error);
+      throw error;
+    }
+  }
+
+  // Fetch latest TikTok video
+  static async fetchLatestTikTok() {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-tiktok`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch latest TikTok video');
+      }
+
+      const result = await response.json();
+      return result.video;
+    } catch (error) {
+      console.error('Error fetching latest TikTok video:', error);
+      throw error;
+    }
+  }
 }

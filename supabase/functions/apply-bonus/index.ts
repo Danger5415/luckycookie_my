@@ -9,7 +9,7 @@ const corsHeaders = {
 
 interface BonusRequest {
   user_id: string;
-  bonus_type: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video';
+  bonus_type: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video' | 'twitter_follow' | 'twitter_like_tweet' | 'tiktok_follow' | 'tiktok_like_video';
   video_id?: string; // Optional video ID for video-based bonuses
 }
 
@@ -51,9 +51,9 @@ serve(async (req) => {
     }
 
     // For video-based bonuses, video_id is required
-    if ((bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') && !video_id) {
+    if ((bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video' || bonus_type === 'twitter_like_tweet' || bonus_type === 'tiktok_like_video') && !video_id) {
       return new Response(
-        JSON.stringify({ error: 'video_id is required for video-based bonuses' }),
+        JSON.stringify({ error: 'video_id is required for content-based bonuses' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -68,8 +68,8 @@ serve(async (req) => {
       .eq('user_id', user_id)
       .eq('bonus_type', bonus_type)
 
-    // For video-based bonuses, also check video_id
-    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') {
+    // For content-based bonuses, also check video_id
+    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video' || bonus_type === 'twitter_like_tweet' || bonus_type === 'tiktok_like_video') {
       bonusQuery = bonusQuery.eq('video_id', video_id)
     }
 
@@ -82,9 +82,9 @@ serve(async (req) => {
     if (existingBonus) {
       return new Response(
         JSON.stringify({ 
-          error: bonus_type === 'youtube_subscribe' 
-            ? 'Subscribe bonus already claimed' 
-            : 'Bonus already claimed for this video'
+          error: (bonus_type === 'youtube_subscribe' || bonus_type === 'twitter_follow' || bonus_type === 'tiktok_follow')
+            ? 'Follow/Subscribe bonus already claimed' 
+            : 'Bonus already claimed for this content'
         }),
         { 
           status: 400, 
@@ -121,11 +121,15 @@ serve(async (req) => {
 
     switch (bonus_type) {
       case 'youtube_subscribe':
+      case 'twitter_follow':
+      case 'tiktok_follow':
         // Reset cooldown completely (make cookie immediately available)
         newLastCrackTime = new Date(now.getTime() - (61 * 60 * 1000)).toISOString() // 61 minutes ago
         break
         
       case 'youtube_like_video':
+      case 'twitter_like_tweet':
+      case 'tiktok_like_video':
         // Reduce cooldown by 50%
         if (currentLastCrack) {
           const nextAvailableTime = new Date(currentLastCrack.getTime() + (60 * 60 * 1000)) // 1 hour after last crack
@@ -176,7 +180,7 @@ serve(async (req) => {
     }
 
     // Add video_id for video-based bonuses
-    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') {
+    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video' || bonus_type === 'twitter_like_tweet' || bonus_type === 'tiktok_like_video') {
       bonusInsertData.video_id = video_id
     }
 

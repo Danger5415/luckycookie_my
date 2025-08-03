@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Cookie, Crown, Trophy, Gift, Star, Zap, Users, Shield, Clock, ExternalLink, ArrowRight, CheckCircle } from 'lucide-react';
+import { Cookie, Crown, Trophy, Gift, Star, Zap, Users, Shield, Clock, ExternalLink, ArrowRight, CheckCircle, Mail, Youtube } from 'lucide-react';
 
 export const Landing: React.FC = () => {
   const features = [
@@ -408,6 +408,33 @@ export const Landing: React.FC = () => {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors cursor-pointer">
                   <span className="text-xs sm:text-sm">📘</span>
                 </div>
+              </div>
+              <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
+                <a 
+                  href="mailto:originaluckycookie.site@gmail.com"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors"
+                  title="Email us"
+                >
+                  <Mail className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                </a>
+                <a 
+                  href="https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                  title="Follow us on YouTube"
+                >
+                  <Youtube className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+                </a>
+                <a 
+                  href="https://x.com/LuckyCook13?t=sYadoF4v-gL8OUvhOCKQPA&s=08"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-black transition-colors"
+                  title="Follow us on X (Twitter)"
+                >
+                  <span className="text-white text-xs sm:text-sm font-bold">𝕏</span>
+                </a>
               </div>
             </div>
           </div>
