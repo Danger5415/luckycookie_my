@@ -14,6 +14,10 @@ import { PremiumCrack } from './pages/PremiumCrack';
 import { ResetPassword } from './pages/ResetPassword';
 import { Admin } from './pages/Admin';
 import { Leaderboard } from './pages/Leaderboard';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
+import { Refund } from './pages/Refund';
+import { Pricing } from './pages/Pricing';
 
 function App() {
   const { user, loading, error, initialized } = useAuth();
@@ -130,6 +134,12 @@ function App() {
           path="/leaderboard" 
           element={<Leaderboard />} 
         />
+        
+        {/* Legal Pages - Public Routes */}
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/refund" element={<Refund />} />
+        <Route path="/pricing" element={<Pricing />} />
         
         {/* Protected Routes */}
         <Route 
