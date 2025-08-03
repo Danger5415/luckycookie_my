@@ -12,6 +12,7 @@ interface BonusTask {
   icon: React.ReactNode;
   url: string; // Will be provided later
   claimed: boolean;
+  videoId?: string; // For video-based tasks
 }
 
 interface BonusTasksProps {
@@ -22,11 +23,21 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<BonusTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [fetchingVideo, setFetchingVideo] = useState(true);
   const [claimingTask, setClaimingTask] = useState<string | null>(null);
+  const [latestVideo, setLatestVideo] = useState<any>(null);
 
-  // Initialize tasks (URLs will be updated when provided)
-  const initializeTasks = (claimedBonuses: any[] = []) => {
-    const claimedTypes = new Set(claimedBonuses.map(bonus => bonus.bonus_type));
+  // Initialize tasks with dynamic video data
+  const initializeTasks = (claimedBonuses: any[] = [], videoData: any = null) => {
+    // Create a map of claimed bonuses with video IDs
+    const claimedBonusMap = new Map();
+    claimedBonuses.forEach(bonus => {
+      if (bonus.bonus_type === 'youtube_subscribe') {
+        claimedBonusMap.set(bonus.bonus_type, true);
+      } else if (bonus.video_id) {
+        claimedBonusMap.set(`${bonus.bonus_type}_${bonus.video_id}`, true);
+      }
+    });
     
     return [
       {
@@ -36,8 +47,8 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         description: 'Subscribe to our YouTube channel and get an instant free crack!',
         reward: 'Reset cooldown completely',
         icon: <Youtube className="h-5 w-5 text-red-500" />,
-        url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA', // Placeholder URL
-        claimed: claimedTypes.has('youtube_subscribe')
+        url: 'https://youtube.com/@placeholder', // Static channel URL
+        claimed: claimedBonusMap.has('youtube_subscribe')
       },
       {
         id: 'youtube_like_video',
@@ -46,8 +57,9 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         description: 'Like our latest YouTube video and reduce your cooldown by 50%!',
         reward: 'Reduce cooldown by 50%',
         icon: <Youtube className="h-5 w-5 text-red-500" />,
-        url: 'https://youtube.com/watch?v=placeholder', // Placeholder URL
-        claimed: claimedTypes.has('youtube_like_video')
+        url: videoData?.url || 'https://youtube.com/watch?v=placeholder',
+        videoId: videoData?.id,
+        claimed: videoData?.id ? claimedBonusMap.has(`youtube_like_video_${videoData.id}`) : false
       },
       {
         id: 'youtube_watch_video',
@@ -56,25 +68,61 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         description: 'Watch our featured video completely and get 30 minutes off your cooldown!',
         reward: 'Reduce cooldown by 30 minutes',
         icon: <Youtube className="h-5 w-5 text-red-500" />,
-        url: 'https://youtube.com/watch?v=placeholder2', // Placeholder URL
-        claimed: claimedTypes.has('youtube_watch_video')
+        url: videoData?.url || 'https://youtube.com/watch?v=placeholder2',
+        videoId: videoData?.id,
+        claimed: videoData?.id ? claimedBonusMap.has(`youtube_watch_video_${videoData.id}`) : false
       }
     ];
   };
 
   useEffect(() => {
-    fetchClaimedBonuses();
+    initializeComponent();
   }, [user]);
 
-  const fetchClaimedBonuses = async () => {
+  const initializeComponent = async () => {
     if (!user) return;
 
     try {
-      const claimedBonuses = await DatabaseService.getUserClaimedBonuses(user.id);
+      setFetchingVideo(true);
+      
+      // Fetch latest video and claimed bonuses in parallel
+      const [videoData, claimedBonuses] = await Promise.all([
+        fetchLatestVideo(),
+        fetchClaimedBonuses()
+      ]);
+
+      setLatestVideo(videoData);
+      setTasks(initializeTasks(claimedBonuses, videoData));
+    } catch (error) {
+      console.error('Error initializing bonus tasks:', error);
+      // Initialize with fallback data
+      const claimedBonuses = await fetchClaimedBonuses();
       setTasks(initializeTasks(claimedBonuses));
+    } finally {
+      setFetchingVideo(false);
+    }
+  };
+
+  const fetchLatestVideo = async () => {
+    try {
+      const videoData = await DatabaseService.fetchLatestYouTubeVideo();
+      console.log('📺 Fetched latest YouTube video:', videoData);
+      return videoData;
+    } catch (error) {
+      console.error('Error fetching latest YouTube video:', error);
+      return null;
+    }
+  };
+
+  const fetchClaimedBonuses = async () => {
+    if (!user) return [];
+
+    try {
+      const claimedBonuses = await DatabaseService.getUserClaimedBonuses(user.id);
+      return claimedBonuses;
     } catch (error) {
       console.error('Error fetching claimed bonuses:', error);
-      setTasks(initializeTasks());
+      return [];
     }
   };
 
@@ -91,7 +139,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Apply the bonus
-      await DatabaseService.applyBonus(user.id, task.type);
+      await DatabaseService.applyBonus(user.id, task.type, task.videoId);
 
       // Update the task as claimed
       setTasks(prevTasks => 
@@ -116,7 +164,9 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
             t.id === task.id ? { ...t, claimed: true } : t
           )
         );
-        alert('You have already claimed this bonus!');
+        alert(task.type === 'youtube_subscribe' 
+          ? 'You have already claimed the subscribe bonus!' 
+          : 'You have already claimed this bonus for this video!');
       } else {
         alert('Error applying bonus. Please try again.');
       }
@@ -126,6 +176,21 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
   };
 
   if (!user) return null;
+
+  if (fetchingVideo) {
+    return (
+      <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-4 sm:mb-8">
+        <div className="text-center">
+          <div className="flex items-center justify-center mb-2 sm:mb-4">
+            <Gift className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 mr-2 sm:mr-3" />
+            <h3 className="text-lg sm:text-2xl font-bold text-gray-800">Bonus Tasks</h3>
+          </div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-400 border-t-transparent mb-4"></div>
+          <p className="text-sm text-gray-600">Loading latest video tasks...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8 mb-4 sm:mb-8">
@@ -137,6 +202,11 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         <p className="text-xs sm:text-base text-gray-600">
           Complete these tasks to get bonus cookie cracks and reduce your cooldown!
         </p>
+        {latestVideo && (
+          <div className="mt-2 text-xs text-gray-500">
+            Latest video: "{latestVideo.title}" (Published: {new Date(latestVideo.publishedAt).toLocaleDateString()})
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
@@ -168,6 +238,13 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
             <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3">
               {task.description}
             </p>
+
+            {/* Show video title for video-based tasks */}
+            {task.videoId && latestVideo && (
+              <p className="text-xs text-blue-600 mb-2 truncate" title={latestVideo.title}>
+                📺 {latestVideo.title}
+              </p>
+            )}
 
             <div className="flex items-center mb-2 sm:mb-3">
               <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-orange-500 mr-1 sm:mr-2" />
@@ -212,7 +289,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 sm:p-3">
           <p className="text-xs sm:text-sm text-yellow-800">
             <strong>Note:</strong> Each bonus can only be claimed once per account. 
-            Complete the task on YouTube before claiming your bonus!
+            Complete the task on YouTube before claiming your bonus! Video tasks reset when new videos are published.
           </p>
         </div>
       </div>

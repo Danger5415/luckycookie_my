@@ -10,6 +10,7 @@ const corsHeaders = {
 interface BonusRequest {
   user_id: string;
   bonus_type: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video';
+  video_id?: string; // Optional video ID for video-based bonuses
 }
 
 serve(async (req) => {
@@ -37,7 +38,7 @@ serve(async (req) => {
     )
 
     // Parse request body
-    const { user_id, bonus_type }: BonusRequest = await req.json()
+    const { user_id, bonus_type, video_id }: BonusRequest = await req.json()
 
     if (!user_id || !bonus_type) {
       return new Response(
@@ -49,13 +50,30 @@ serve(async (req) => {
       )
     }
 
-    // Check if user has already claimed this bonus
-    const { data: existingBonus, error: bonusCheckError } = await supabaseClient
+    // For video-based bonuses, video_id is required
+    if ((bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') && !video_id) {
+      return new Response(
+        JSON.stringify({ error: 'video_id is required for video-based bonuses' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    // Check if user has already claimed this bonus (with video_id for video-based bonuses)
+    let bonusQuery = supabaseClient
       .from('user_bonuses')
       .select('id')
       .eq('user_id', user_id)
       .eq('bonus_type', bonus_type)
-      .single()
+
+    // For video-based bonuses, also check video_id
+    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') {
+      bonusQuery = bonusQuery.eq('video_id', video_id)
+    }
+
+    const { data: existingBonus, error: bonusCheckError } = await bonusQuery.single()
 
     if (bonusCheckError && bonusCheckError.code !== 'PGRST116') {
       throw bonusCheckError
@@ -63,7 +81,11 @@ serve(async (req) => {
 
     if (existingBonus) {
       return new Response(
-        JSON.stringify({ error: 'Bonus already claimed for this task' }),
+        JSON.stringify({ 
+          error: bonus_type === 'youtube_subscribe' 
+            ? 'Subscribe bonus already claimed' 
+            : 'Bonus already claimed for this video'
+        }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -147,13 +169,20 @@ serve(async (req) => {
     }
 
     // Record the bonus claim
+    const bonusInsertData: any = {
+      user_id: user_id,
+      bonus_type: bonus_type,
+      status: 'claimed'
+    }
+
+    // Add video_id for video-based bonuses
+    if (bonus_type === 'youtube_like_video' || bonus_type === 'youtube_watch_video') {
+      bonusInsertData.video_id = video_id
+    }
+
     const { error: bonusError } = await supabaseClient
       .from('user_bonuses')
-      .insert({
-        user_id: user_id,
-        bonus_type: bonus_type,
-        status: 'claimed'
-      })
+      .insert(bonusInsertData)
 
     if (bonusError) {
       // If bonus recording fails, we should ideally rollback the profile update
@@ -166,6 +195,7 @@ serve(async (req) => {
         success: true, 
         message: 'Bonus applied successfully',
         bonus_type: bonus_type,
+        video_id: video_id || null,
         new_last_crack_time: newLastCrackTime
       }),
       {

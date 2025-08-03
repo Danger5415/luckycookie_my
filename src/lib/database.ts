@@ -632,21 +632,28 @@ export class DatabaseService {
   }
 
   // Bonus task system
-  static async applyBonus(userId: string, bonusType: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video') {
+  static async applyBonus(userId: string, bonusType: 'youtube_subscribe' | 'youtube_like_video' | 'youtube_watch_video', videoId?: string) {
     try {
       console.log('🎁 Applying bonus:', bonusType, 'for user:', userId);
       
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const requestBody: any = {
+        user_id: userId,
+        bonus_type: bonusType,
+      };
+
+      // Add video_id for video-based bonuses
+      if ((bonusType === 'youtube_like_video' || bonusType === 'youtube_watch_video') && videoId) {
+        requestBody.video_id = videoId;
+      }
+
       const response = await fetch(`${supabaseUrl}/functions/v1/apply-bonus`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({
-          user_id: userId,
-          bonus_type: bonusType,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -667,7 +674,7 @@ export class DatabaseService {
     try {
       const { data, error } = await supabase
         .from('user_bonuses')
-        .select('bonus_type, claimed_at')
+        .select('bonus_type, claimed_at, video_id')
         .eq('user_id', userId);
 
       if (error) throw error;
@@ -675,6 +682,31 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error fetching user bonuses:', error);
       return [];
+    }
+  }
+
+  // Fetch latest YouTube video
+  static async fetchLatestYouTubeVideo() {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-youtube-video`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch latest YouTube video');
+      }
+
+      const result = await response.json();
+      return result.video;
+    } catch (error) {
+      console.error('Error fetching latest YouTube video:', error);
+      throw error;
     }
   }
 }
