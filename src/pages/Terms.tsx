@@ -164,8 +164,8 @@ export const Terms: React.FC = () => {
               </p>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-gray-700">
-                  <strong>Email:</strong> support@luckycookie.io<br />
-                  <strong>Website:</strong> https://luckycookie.io
+                  <strong>Email:</strong> originaluckycookie.site@gmail.com<br />
+                  <strong>Website:</strong> https://luckycookie.site
                 </p>
               </div>
             </section>

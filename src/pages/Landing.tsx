@@ -74,7 +74,7 @@ export const Landing: React.FC = () => {
               alt="LuckyCookie.io Logo" 
               className="h-8 w-8 sm:h-10 sm:w-10 mr-2 sm:mr-3 object-contain"
             />
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">LuckyCookie.io</h1>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800">LuckyCookie</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Link 
@@ -141,7 +141,7 @@ export const Landing: React.FC = () => {
         <div className="max-w-7xl mx-auto px-2 sm:px-4">
           <div className="text-center mb-8 sm:mb-12 md:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 md:mb-6 px-2">
-              Why Choose LuckyCookie.io?
+              Why Choose LuckyCookie ?
             </h2>
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-2">
               Experience the thrill of fortune cookies with real prizes, secure payments, and a global community of players.
@@ -367,7 +367,7 @@ export const Landing: React.FC = () => {
                   alt="LuckyCookie.io Logo" 
                   className="h-6 w-6 sm:h-8 sm:w-8 mr-2 object-contain"
                 />
-                <h3 className="text-base sm:text-lg md:text-xl font-bold">LuckyCookie.io</h3>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold">LuckyCookie</h3>
               </div>
               <p className="text-xs sm:text-sm md:text-base text-gray-400">
                 The world's most exciting fortune cookie experience with real prizes and global competition.
@@ -386,7 +386,7 @@ export const Landing: React.FC = () => {
             <div>
               <h4 className="text-sm sm:text-base md:text-lg font-bold mb-2 sm:mb-3 md:mb-4">Support</h4>
               <ul className="space-y-1 sm:space-y-2">
-                <li><a href="mailto:support@luckycookie.io" className="text-xs sm:text-sm md:text-base text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="mailto:originaluckycookie.site@gmail.com" className="text-xs sm:text-sm md:text-base text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
                 <li><Link to="/privacy" className="text-xs sm:text-sm md:text-base text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/terms" className="text-xs sm:text-sm md:text-base text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link to="/refund" className="text-xs sm:text-sm md:text-base text-gray-400 hover:text-white transition-colors">Refund Policy</Link></li>
@@ -414,7 +414,7 @@ export const Landing: React.FC = () => {
 
           <div className="border-t border-gray-700 mt-4 sm:mt-6 md:mt-8 pt-4 sm:pt-6 md:pt-8 text-center">
             <p className="text-xs sm:text-sm md:text-base text-gray-400">
-              © 2025 LuckyCookie.io. All rights reserved. Made with ❤️ for cookie lovers worldwide.
+              © 2025 LuckyCookie. All rights reserved. Made with ❤️ for cookie lovers worldwide.
             </p>
           </div>
         </div>
