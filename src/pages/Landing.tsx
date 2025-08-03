@@ -399,7 +399,7 @@ export const Landing: React.FC = () => {
                 Follow us for updates and special promotions!
               </p>
               <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors cursor-pointer">
+                {/* <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors cursor-pointer">
                   <span className="text-xs sm:text-sm">📧</span>
                 </div>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors cursor-pointer">
@@ -407,7 +407,7 @@ export const Landing: React.FC = () => {
                 </div>
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-700 rounded-full flex items-center justify-center hover:bg-gray-600 transition-colors cursor-pointer">
                   <span className="text-xs sm:text-sm">📘</span>
-                </div>
+                </div> */}
               </div>
               <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
                 <a 
