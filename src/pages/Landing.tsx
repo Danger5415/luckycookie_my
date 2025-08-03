@@ -40,26 +40,26 @@ export const Landing: React.FC = () => {
 
   const testimonials = [
     {
-      text: "I won an iPhone 15 Pro from a Gold tier cookie! This site is amazing!",
+      text: "I won an airpodes from a Gold tier cookie! This site is amazing!",
       author: "Sarah M.",
       tier: "Gold Winner"
     },
     {
-      text: "Love the daily free cookies. Already won 3 gift cards this month!",
+      text: "Love the daily free cookies. Already won 3 gift cards this week!",
       author: "Mike R.",
       tier: "Free Player"
     },
     {
       text: "Premium cookies are worth it. Guaranteed prizes every time!",
       author: "Emma L.",
-      tier: "Diamond Member"
+      tier: "Diamond Winner"
     }
   ];
 
   const stats = [
-    { number: "50K+", label: "Happy Players" },
-    { number: "100K+", label: "Cookies Cracked" },
-    { number: "$2M+", label: "Prizes Won" },
+    { number: "5K+", label: "Happy Players" },
+    { number: "40K+", label: "Cookies Cracked" },
+    { number: "$200K+", label: "Prizes Won" },
     { number: "99.9%", label: "Uptime" }
   ];
 
