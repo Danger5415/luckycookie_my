@@ -6,16 +6,15 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
 }
 
-interface TikTokVideo {
+interface TwitterTweet {
   id: string;
-  title: string;
+  text: string;
   url: string;
   created_at: string;
-  thumbnail?: string;
-  stats?: {
+  public_metrics?: {
     like_count: number;
-    view_count: number;
-    share_count: number;
+    retweet_count: number;
+    reply_count: number;
   };
 }
 
@@ -38,54 +37,63 @@ serve(async (req) => {
     }
 
     // Get environment variables
-    const tiktokAccessToken = Deno.env.get('TIKTOK_ACCESS_TOKEN')
-    const tiktokUsername = Deno.env.get('TIKTOK_USERNAME') || 'luckycookieio'
+    const twitterApiKey = Deno.env.get('TWITTER_API_KEY')
+    const twitterApiSecret = Deno.env.get('TWITTER_API_SECRET')
+    const twitterUsername = Deno.env.get('TWITTER_USERNAME') || 'LuckyCook13'
 
-    if (!tiktokAccessToken) {
+    if (!twitterApiKey || !twitterApiSecret) {
+      // Return fallback response when API credentials are missing
       return new Response(
-        JSON.stringify({ 
-          error: 'TikTok API configuration missing',
-          details: 'TIKTOK_ACCESS_TOKEN must be set'
+        JSON.stringify({
+          success: true,
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
+          },
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'API credentials not configured'
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
       )
     }
 
-    // TikTok API endpoint for user videos
-    const tiktokApiUrl = `https://open-api.tiktok.com/v2/video/list/?fields=id,title,create_time,cover_image_url,like_count,view_count,share_count&max_count=1`
-
-    const response = await fetch(tiktokApiUrl, {
+    // Create OAuth 1.0a signature for Twitter API v1.1
+    // For simplicity, we'll use a basic approach to get user timeline
+    const bearerToken = btoa(`${twitterApiKey}:${twitterApiSecret}`)
+    
+    // First, get an application-only bearer token
+    const tokenResponse = await fetch('https://api.twitter.com/oauth2/token', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${tiktokAccessToken}`,
-        'Content-Type': 'application/json',
+        'Authorization': `Basic ${bearerToken}`,
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
-      body: JSON.stringify({
-        max_count: 1,
-        cursor: 0
-      })
+      body: 'grant_type=client_credentials'
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error('TikTok API error:', errorText)
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text()
+      console.error('Twitter token error:', errorText)
       
-      // If TikTok API fails, return a fallback response
+      // Return fallback response when authentication fails
       return new Response(
         JSON.stringify({
           success: true,
-          video: {
-            id: 'fallback_video',
-            title: 'Latest TikTok Video',
-            url: `https://www.tiktok.com/@${tiktokUsername}`,
-            created_at: new Date().toISOString(),
-            thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
           },
-          profile_url: `https://www.tiktok.com/@${tiktokUsername}`,
-          fallback: true
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'Authentication failed'
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -94,49 +102,136 @@ serve(async (req) => {
       )
     }
 
-    const data = await response.json()
+    const tokenData = await tokenResponse.json()
+    const accessToken = tokenData.access_token
 
-    if (!data.data || !data.data.videos || data.data.videos.length === 0) {
-      // Return fallback if no videos found
-      return new Response(
-        JSON.stringify({
-          success: true,
-          video: {
-            id: 'fallback_video',
-            title: 'Latest TikTok Video',
-            url: `https://www.tiktok.com/@${tiktokUsername}`,
-            created_at: new Date().toISOString(),
-            thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
-          },
-          profile_url: `https://www.tiktok.com/@${tiktokUsername}`,
-          fallback: true
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        },
-      )
-    }
-
-    const latestVideo = data.data.videos[0]
-    const videoData: TikTokVideo = {
-      id: latestVideo.id,
-      title: latestVideo.title || 'Latest TikTok Video',
-      url: `https://www.tiktok.com/@${tiktokUsername}/video/${latestVideo.id}`,
-      created_at: new Date(latestVideo.create_time * 1000).toISOString(),
-      thumbnail: latestVideo.cover_image_url,
-      stats: {
-        like_count: latestVideo.like_count || 0,
-        view_count: latestVideo.view_count || 0,
-        share_count: latestVideo.share_count || 0
+    // Get user ID first
+    const userResponse = await fetch(`https://api.twitter.com/2/users/by/username/${twitterUsername}`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
       }
+    })
+
+    if (!userResponse.ok) {
+      const errorText = await userResponse.text()
+      console.error('Twitter user lookup error:', errorText)
+      
+      // Return fallback response when user lookup fails (including rate limiting)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
+          },
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'User lookup failed or rate limited'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    const userData = await userResponse.json()
+    const userId = userData.data?.id
+
+    if (!userId) {
+      // Return fallback response when user ID is not found
+      return new Response(
+        JSON.stringify({
+          success: true,
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
+          },
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'User ID not found'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    // Fetch latest tweet from user timeline
+    const tweetsResponse = await fetch(`https://api.twitter.com/2/users/${userId}/tweets?max_results=5&tweet.fields=created_at,public_metrics`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    })
+
+    if (!tweetsResponse.ok) {
+      const errorText = await tweetsResponse.text()
+      console.error('Twitter tweets error:', errorText)
+      
+      // Return fallback response when tweets fetch fails
+      return new Response(
+        JSON.stringify({
+          success: true,
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
+          },
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'Failed to fetch tweets'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    const tweetsData = await tweetsResponse.json()
+
+    if (!tweetsData.data || tweetsData.data.length === 0) {
+      // Return fallback response when no tweets are found
+      return new Response(
+        JSON.stringify({
+          success: true,
+          tweet: {
+            id: 'fallback_tweet',
+            text: 'Follow us for the latest updates and bonus opportunities!',
+            url: `https://twitter.com/${twitterUsername}`,
+            created_at: new Date().toISOString()
+          },
+          profile_url: `https://twitter.com/${twitterUsername}`,
+          fallback: true,
+          reason: 'No tweets found'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    const latestTweet = tweetsData.data[0]
+    const tweetData: TwitterTweet = {
+      id: latestTweet.id,
+      text: latestTweet.text,
+      url: `https://twitter.com/${twitterUsername}/status/${latestTweet.id}`,
+      created_at: latestTweet.created_at,
+      public_metrics: latestTweet.public_metrics
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        video: videoData,
-        profile_url: `https://www.tiktok.com/@${tiktokUsername}`
+        tweet: tweetData,
+        profile_url: `https://twitter.com/${twitterUsername}`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -145,28 +240,16 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Fetch latest TikTok video error:', error)
-    
-    // Return fallback on any error
-    const tiktokUsername = Deno.env.get('TIKTOK_USERNAME') || 'luckycookieio'
+    console.error('Fetch latest tweet error:', error)
     
     return new Response(
-      JSON.stringify({
-        success: true,
-        video: {
-          id: 'fallback_video',
-          title: 'Latest TikTok Video',
-          url: `https://www.tiktok.com/@${tiktokUsername}`,
-          created_at: new Date().toISOString(),
-          thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
-        },
-        profile_url: `https://www.tiktok.com/@${tiktokUsername}`,
-        fallback: true,
-        error: error.message
+      JSON.stringify({ 
+        error: 'Failed to fetch latest tweet',
+        details: error.message 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+        status: 500,
       },
     )
   }

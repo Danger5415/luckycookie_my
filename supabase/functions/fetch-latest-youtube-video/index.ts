@@ -37,15 +37,24 @@ serve(async (req) => {
     const channelId = Deno.env.get('VITE_YOUTUBE_CHANNEL_ID')
 
     if (!youtubeApiKey || !channelId) {
+      // Return fallback response when API configuration is missing
       return new Response(
-        JSON.stringify({ 
-          error: 'YouTube API configuration missing',
-          details: 'VITE_YOUTUBE_API_KEY and VITE_YOUTUBE_CHANNEL_ID must be set'
+        JSON.stringify({
+          success: true,
+          video: {
+            id: 'fallback_youtube_video',
+            title: 'Latest LuckyCookie Video',
+            url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA',
+            publishedAt: new Date().toISOString(),
+            thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
+          },
+          fallback: true,
+          reason: 'API configuration missing'
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
       )
     }
 
@@ -58,30 +67,48 @@ serve(async (req) => {
       const errorText = await response.text()
       console.error('YouTube API error:', errorText)
       
+      // Return fallback response when API call fails
       return new Response(
-        JSON.stringify({ 
-          error: 'Failed to fetch from YouTube API',
-          details: `HTTP ${response.status}: ${errorText}`
+        JSON.stringify({
+          success: true,
+          video: {
+            id: 'fallback_youtube_video',
+            title: 'Latest LuckyCookie Video',
+            url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA',
+            publishedAt: new Date().toISOString(),
+            thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
+          },
+          fallback: true,
+          reason: 'API call failed'
         }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
       )
     }
 
     const data = await response.json()
 
     if (!data.items || data.items.length === 0) {
+      // Return fallback response when no videos are found
       return new Response(
-        JSON.stringify({ 
-          error: 'No videos found',
-          details: 'No videos found on the specified channel'
+        JSON.stringify({
+          success: true,
+          video: {
+            id: 'fallback_youtube_video',
+            title: 'Latest LuckyCookie Video',
+            url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA',
+            publishedAt: new Date().toISOString(),
+            thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
+          },
+          fallback: true,
+          reason: 'No videos found'
         }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
       )
     }
 

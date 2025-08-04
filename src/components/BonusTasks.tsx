@@ -154,17 +154,30 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
   const initializeComponent = async () => {
     if (!user) return;
 
+    // Initialize variables to ensure they're always defined
+    let videoData = null;
+    let tweetData = null;
+    let tiktokData = null;
+    let claimedBonuses = [];
+
     try {
       setFetchingContent(true);
       setError(null);
       
       // Fetch all content and claimed bonuses in parallel
-      const [videoData, tweetData, tiktokData, claimedBonuses] = await Promise.all([
+      // Fetch content with individual error handling to prevent one failure from breaking everything
+      const [fetchedVideoData, fetchedTweetData, fetchedTiktokData, fetchedClaimedBonuses] = await Promise.allSettled([
         fetchLatestVideo(),
         fetchLatestTweet(),
         fetchLatestTikTok(),
         fetchClaimedBonuses()
       ]);
+
+      // Assign fetched data to our variables
+      videoData = fetchedVideoData.status === 'fulfilled' ? fetchedVideoData.value : null;
+      tweetData = fetchedTweetData.status === 'fulfilled' ? fetchedTweetData.value : null;
+      tiktokData = fetchedTiktokData.status === 'fulfilled' ? fetchedTiktokData.value : null;
+      claimedBonuses = fetchedClaimedBonuses.status === 'fulfilled' ? fetchedClaimedBonuses.value : [];
 
       setLatestVideo(videoData);
       setLatestTweet(tweetData);
@@ -172,15 +185,19 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       setTasks(initializeTasks(claimedBonuses, videoData, tweetData, tiktokData));
     } catch (error) {
       console.error('Error initializing bonus tasks:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load bonus tasks');
-      // Initialize with fallback data
+      // Don't show error to user, just log it and continue with fallback data
+      console.warn('Some bonus tasks failed to load, using fallback data');
+      
+      // Try to fetch claimed bonuses separately if the parallel fetch failed
       try {
-        const claimedBonuses = await fetchClaimedBonuses();
-        setTasks(initializeTasks(claimedBonuses));
+        claimedBonuses = await fetchClaimedBonuses();
       } catch (fallbackError) {
         console.error('Error loading fallback data:', fallbackError);
-        setTasks(initializeTasks([])); // Initialize with empty data
+        claimedBonuses = [];
       }
+      
+      // Initialize with whatever data we have (including nulls for failed API calls)
+      setTasks(initializeTasks(claimedBonuses, videoData, tweetData, tiktokData));
     } finally {
       setFetchingContent(false);
     }
@@ -197,7 +214,14 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       return videoData;
     } catch (error) {
       console.error('Error fetching latest YouTube video:', error);
-      throw error;
+      // Return fallback data for YouTube if API fails
+      return {
+        id: 'fallback_youtube_video',
+        title: 'Latest LuckyCookie Video',
+        url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA',
+        publishedAt: new Date().toISOString(),
+        thumbnail: 'https://images.pexels.com/photos/1649771/pexels-photo-1649771.jpeg?auto=compress&cs=tinysrgb&w=400'
+      };
     }
   };
 
@@ -212,7 +236,15 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       return tweetData;
     } catch (error) {
       console.error('Error fetching latest tweet:', error);
-      throw error;
+      // Return fallback data for Twitter if API fails
+      return {
+        tweet: {
+          id: 'fallback_tweet',
+          text: 'Follow us for the latest updates!',
+          url: 'https://x.com/LuckyCook13?t=sYadoF4v-gL8OUvhOCKQPA&s=08'
+        },
+        profile_url: 'https://x.com/LuckyCook13?t=sYadoF4v-gL8OUvhOCKQPA&s=08'
+      };
     }
   };
 
@@ -227,7 +259,15 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       return tiktokData;
     } catch (error) {
       console.error('Error fetching latest TikTok:', error);
-      throw error;
+      // Return fallback data for TikTok if API fails
+      return {
+        video: {
+          id: 'fallback_tiktok_video',
+          title: 'Latest TikTok Video',
+          url: 'https://www.tiktok.com/@luckycookieio'
+        },
+        profile_url: 'https://www.tiktok.com/@luckycookieio'
+      };
     }
   };
 
