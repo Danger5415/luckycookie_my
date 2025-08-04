@@ -1,6 +1,7 @@
 // Database schema and helper functions
 import { supabase } from './supabase';
 import type { Database } from './supabase';
+import { withTimeout } from '../utils/timeout';
 
 // Extended database types
 export interface ShippingAddress {
@@ -90,14 +91,23 @@ export interface FreePrizeClaim {
 export class DatabaseService {
   // Shipping addresses
   static async createShippingAddress(data: Omit<ShippingAddress, 'id' | 'created_at' | 'updated_at'>) {
-    const { data: result, error } = await supabase
-      .from('shipping_addresses')
-      .insert(data)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await withTimeout(
+        supabase
+          .from('shipping_addresses')
+          .insert(data)
+          .select()
+          .single(),
+        10000,
+        'Creating shipping address timed out'
+      );
 
-    if (error) throw error;
-    return result;
+      if (error) throw error;
+      return result;
+    } catch (error) {
+      console.error('Error creating shipping address:', error);
+      throw error;
+    }
   }
 
   static async updateShippingStatus(
@@ -116,15 +126,24 @@ export class DatabaseService {
     if (status === 'shipped') updateData.shipped_at = new Date().toISOString();
     if (status === 'delivered') updateData.delivered_at = new Date().toISOString();
 
-    const { data, error } = await supabase
-      .from('shipping_addresses')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('shipping_addresses')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single(),
+        10000,
+        'Updating shipping status timed out'
+      );
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating shipping status:', error);
+      throw error;
+    }
   }
 
   static async getShippingAddresses(filters?: {
@@ -145,36 +164,63 @@ export class DatabaseService {
     if (filters?.user_id) query = query.eq('user_id', filters.user_id);
     if (filters?.limit) query = query.limit(filters.limit);
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await withTimeout(
+        query,
+        15000,
+        'Fetching shipping addresses timed out'
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching shipping addresses:', error);
+      throw error;
+    }
   }
 
   // Gumroad purchases
   static async createGumroadPurchase(data: Omit<GumroadPurchase, 'id' | 'created_at' | 'updated_at'>) {
-    const { data: result, error } = await supabase
-      .from('gumroad_purchases')
-      .insert(data)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await withTimeout(
+        supabase
+          .from('gumroad_purchases')
+          .insert(data)
+          .select()
+          .single(),
+        10000,
+        'Creating Gumroad purchase timed out'
+      );
 
-    if (error) throw error;
-    return result;
+      if (error) throw error;
+      return result;
+    } catch (error) {
+      console.error('Error creating Gumroad purchase:', error);
+      throw error;
+    }
   }
 
   static async updateGumroadPurchaseStatus(id: string, status: GumroadPurchase['status']) {
-    const { data, error } = await supabase
-      .from('gumroad_purchases')
-      .update({ 
-        status, 
-        updated_at: new Date().toISOString() 
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('gumroad_purchases')
+          .update({ 
+            status, 
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', id)
+          .select()
+          .single(),
+        10000,
+        'Updating Gumroad purchase status timed out'
+      );
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating Gumroad purchase status:', error);
+      throw error;
+    }
   }
 
   static async getGumroadPurchases(filters?: {
@@ -196,21 +242,39 @@ export class DatabaseService {
     if (filters?.tier) query = query.eq('tier', filters.tier);
     if (filters?.limit) query = query.limit(filters.limit);
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await withTimeout(
+        query,
+        15000,
+        'Fetching Gumroad purchases timed out'
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching Gumroad purchases:', error);
+      throw error;
+    }
   }
 
   // Free prize claims
   static async createFreePrizeClaim(data: Omit<FreePrizeClaim, 'id' | 'created_at' | 'updated_at'>) {
-    const { data: result, error } = await supabase
-      .from('free_prize_claims')
-      .insert(data)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await withTimeout(
+        supabase
+          .from('free_prize_claims')
+          .insert(data)
+          .select()
+          .single(),
+        10000,
+        'Creating free prize claim timed out'
+      );
 
-    if (error) throw error;
-    return result;
+      if (error) throw error;
+      return result;
+    } catch (error) {
+      console.error('Error creating free prize claim:', error);
+      throw error;
+    }
   }
 
   static async updateFreePrizeClaimStatus(
@@ -226,15 +290,24 @@ export class DatabaseService {
     if (adminNotes) updateData.admin_notes = adminNotes;
     if (status === 'completed') updateData.processed_at = new Date().toISOString();
 
-    const { data, error } = await supabase
-      .from('free_prize_claims')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('free_prize_claims')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single(),
+        10000,
+        'Updating free prize claim status timed out'
+      );
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error updating free prize claim status:', error);
+      throw error;
+    }
   }
 
   static async getFreePrizeClaims(filters?: {
@@ -257,36 +330,63 @@ export class DatabaseService {
     if (filters?.claim_type) query = query.eq('claim_type', filters.claim_type);
     if (filters?.limit) query = query.limit(filters.limit);
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await withTimeout(
+        query,
+        15000,
+        'Fetching free prize claims timed out'
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching free prize claims:', error);
+      throw error;
+    }
   }
 
   // Dynamic prizes
   static async createDynamicPrize(data: Omit<DynamicPrize, 'id' | 'created_at'>) {
-    const { data: result, error } = await supabase
-      .from('dynamic_prizes')
-      .insert(data)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await withTimeout(
+        supabase
+          .from('dynamic_prizes')
+          .insert(data)
+          .select()
+          .single(),
+        10000,
+        'Creating dynamic prize timed out'
+      );
 
-    if (error) throw error;
-    return result;
+      if (error) throw error;
+      return result;
+    } catch (error) {
+      console.error('Error creating dynamic prize:', error);
+      throw error;
+    }
   }
 
   static async updateDynamicPrize(id: string, data: Partial<DynamicPrize>) {
-    const { data: result, error } = await supabase
-      .from('dynamic_prizes')
-      .update({ 
-        ...data, 
-        last_updated: new Date().toISOString() 
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data: result, error } = await withTimeout(
+        supabase
+          .from('dynamic_prizes')
+          .update({ 
+            ...data, 
+            last_updated: new Date().toISOString() 
+          })
+          .eq('id', id)
+          .select()
+          .single(),
+        10000,
+        'Updating dynamic prize timed out'
+      );
 
-    if (error) throw error;
-    return result;
+      if (error) throw error;
+      return result;
+    } catch (error) {
+      console.error('Error updating dynamic prize:', error);
+      throw error;
+    }
   }
 
   static async getDynamicPrizes(filters?: {
@@ -306,84 +406,134 @@ export class DatabaseService {
     query = query.eq('source', 'manual');
     if (filters?.limit) query = query.limit(filters.limit);
 
-    const { data, error } = await query;
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await withTimeout(
+        query,
+        15000,
+        'Fetching dynamic prizes timed out'
+      );
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching dynamic prizes:', error);
+      throw error;
+    }
   }
 
   static async getRandomPrizeByTier(tier: string): Promise<DynamicPrize | null> {
-    const { data, error } = await supabase
-      .from('dynamic_prizes')
-      .select('*')
-      .eq('tier', tier)
-      .eq('is_active', true)
-      .eq('source', 'manual')
-      .eq('stock_status', 'in_stock');
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('dynamic_prizes')
+          .select('*')
+          .eq('tier', tier)
+          .eq('is_active', true)
+          .eq('source', 'manual')
+          .eq('stock_status', 'in_stock'),
+        10000,
+        'Fetching random prize by tier timed out'
+      );
 
-    if (error) throw error;
-    if (!data || data.length === 0) return null;
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
 
-    // Return random prize from available options
-    return data[Math.floor(Math.random() * data.length)];
+      // Return random prize from available options
+      return data[Math.floor(Math.random() * data.length)];
+    } catch (error) {
+      console.error('Error fetching random prize by tier:', error);
+      throw error;
+    }
   }
 
   // Get random free prize by price range
   static async getRandomFreePrizeByPriceRange(minPrice: number, maxPrice: number): Promise<DynamicPrize | null> {
-    const { data, error } = await supabase
-      .from('dynamic_prizes')
-      .select('*')
-      .eq('is_active', true)
-      .eq('source', 'manual')
-      .eq('stock_status', 'in_stock')
-      .gte('price_usd', minPrice)
-      .lte('price_usd', maxPrice);
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('dynamic_prizes')
+          .select('*')
+          .eq('is_active', true)
+          .eq('source', 'manual')
+          .eq('stock_status', 'in_stock')
+          .gte('price_usd', minPrice)
+          .lte('price_usd', maxPrice),
+        10000,
+        'Fetching random free prize by price range timed out'
+      );
 
-    if (error) throw error;
-    if (!data || data.length === 0) return null;
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
 
-    // Return random prize from available options
-    return data[Math.floor(Math.random() * data.length)];
+      // Return random prize from available options
+      return data[Math.floor(Math.random() * data.length)];
+    } catch (error) {
+      console.error('Error fetching random free prize by price range:', error);
+      throw error;
+    }
   }
 
   // Get prizes for display (manual prizes only)
   static async getPrizesForTierDisplay(tier: string): Promise<DynamicPrize[]> {
-    const prizes = await this.getDynamicPrizes({ 
-      tier, 
-      is_active: true,
-      source: 'manual',
-      limit: 10 
-    });
-    
-    return prizes || [];
+    try {
+      const prizes = await this.getDynamicPrizes({ 
+        tier, 
+        is_active: true,
+        source: 'manual',
+        limit: 10 
+      });
+      
+      return prizes || [];
+    } catch (error) {
+      console.error('Error getting prizes for tier display:', error);
+      throw error;
+    }
   };
 
   // Admin settings
   static async getAdminSetting(key: string): Promise<any> {
-    const { data, error } = await supabase
-      .from('admin_settings')
-      .select('value')
-      .eq('key', key)
-      .single();
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('admin_settings')
+          .select('value')
+          .eq('key', key)
+          .single(),
+        8000,
+        'Fetching admin setting timed out'
+      );
 
-    if (error) return null;
-    return data?.value;
+      if (error) return null;
+      return data?.value;
+    } catch (error) {
+      console.error('Error fetching admin setting:', error);
+      return null;
+    }
   }
 
   static async setAdminSetting(key: string, value: any, description?: string, updatedBy?: string) {
-    const { data, error } = await supabase
-      .from('admin_settings')
-      .upsert({
-        key,
-        value,
-        description,
-        updated_by: updatedBy,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('admin_settings')
+          .upsert({
+            key,
+            value,
+            description,
+            updated_by: updatedBy,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single(),
+        10000,
+        'Setting admin setting timed out'
+      );
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error setting admin setting:', error);
+      throw error;
+    }
   }
 
   // Analytics and reporting
@@ -392,52 +542,85 @@ export class DatabaseService {
 
     // Total users
     queries.push(
-      supabase
-        .from('user_profiles')
-        .select('*', { count: 'exact', head: true })
+      withTimeout(
+        supabase
+          .from('user_profiles')
+          .select('*', { count: 'exact', head: true }),
+        10000,
+        'Fetching user count timed out'
+      )
     );
 
     // Total cracks
-    let crackQuery = supabase
-      .from('crack_history')
-      .select('*', { count: 'exact', head: true });
+    let crackQuery = withTimeout(
+      supabase
+        .from('crack_history')
+        .select('*', { count: 'exact', head: true }),
+      10000,
+      'Fetching crack count timed out'
+    );
 
     if (dateRange) {
-      crackQuery = crackQuery
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end);
+      crackQuery = withTimeout(
+        supabase
+          .from('crack_history')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', dateRange.start)
+          .lte('created_at', dateRange.end),
+        10000,
+        'Fetching filtered crack count timed out'
+      );
     }
     queries.push(crackQuery);
 
     // Premium purchases
-    let purchaseQuery = supabase
-      .from('gumroad_purchases')
-      .select('*', { count: 'exact', head: true });
+    let purchaseQuery = withTimeout(
+      supabase
+        .from('gumroad_purchases')
+        .select('*', { count: 'exact', head: true }),
+      10000,
+      'Fetching purchase count timed out'
+    );
 
     if (dateRange) {
-      purchaseQuery = purchaseQuery
-        .gte('created_at', dateRange.start)
-        .lte('created_at', dateRange.end);
+      purchaseQuery = withTimeout(
+        supabase
+          .from('gumroad_purchases')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', dateRange.start)
+          .lte('created_at', dateRange.end),
+        10000,
+        'Fetching filtered purchase count timed out'
+      );
     }
     queries.push(purchaseQuery);
 
     // Pending shipments
     queries.push(
-      supabase
-        .from('shipping_addresses')
-        .select('*', { count: 'exact', head: true })
-        .in('status', ['pending', 'processing'])
+      withTimeout(
+        supabase
+          .from('shipping_addresses')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['pending', 'processing']),
+        10000,
+        'Fetching pending shipments count timed out'
+      )
     );
 
-    const results = await Promise.all(queries);
-    
-    return {
-      totalUsers: results[0].count || 0,
-      totalCracks: results[1].count || 0,
-      premiumPurchases: results[2].count || 0,
-      pendingShipments: results[3].count || 0,
-      pendingFreeClaims: 0 // Will be updated with actual query
-    };
+    try {
+      const results = await Promise.all(queries);
+      
+      return {
+        totalUsers: results[0].count || 0,
+        totalCracks: results[1].count || 0,
+        premiumPurchases: results[2].count || 0,
+        pendingShipments: results[3].count || 0,
+        pendingFreeClaims: 0 // Will be updated with actual query
+      };
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+      throw error;
+    }
   }
 
   // Get analytics including free prize claims
@@ -445,15 +628,24 @@ export class DatabaseService {
     const basicAnalytics = await this.getAnalytics(dateRange);
     
     // Get pending free prize claims
-    const { count: pendingFreeClaims } = await supabase
-      .from('free_prize_claims')
-      .select('*', { count: 'exact', head: true })
-      .in('status', ['pending', 'processing']);
+    try {
+      const { count: pendingFreeClaims } = await withTimeout(
+        supabase
+          .from('free_prize_claims')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['pending', 'processing']),
+        10000,
+        'Fetching pending free claims count timed out'
+      );
 
-    return {
-      ...basicAnalytics,
-      pendingFreeClaims: pendingFreeClaims || 0
-    };
+      return {
+        ...basicAnalytics,
+        pendingFreeClaims: pendingFreeClaims || 0
+      };
+    } catch (error) {
+      console.error('Error fetching extended analytics:', error);
+      throw error;
+    }
   }
 
   // Prize notification system
@@ -482,17 +674,21 @@ export class DatabaseService {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       console.log('📧 Supabase URL:', supabaseUrl ? 'Present' : 'Missing');
       
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-prize-notification`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          ...payload,
-          timestamp: new Date().toISOString(),
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/functions/v1/send-prize-notification`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            ...payload,
+            timestamp: new Date().toISOString(),
+          }),
         }),
-      });
+        15000,
+        'Prize notification request timed out'
+      );
 
       console.log('📧 Notification fetch response status:', response.status);
       
@@ -522,11 +718,15 @@ export class DatabaseService {
       console.log('📝 Updating crack history share status for ID:', crackHistoryId);
       
       // First, get the current crack history record
-      const { data: crackHistory, error: fetchError } = await supabase
-        .from('crack_history')
-        .select('prize_data')
-        .eq('id', crackHistoryId)
-        .single();
+      const { data: crackHistory, error: fetchError } = await withTimeout(
+        supabase
+          .from('crack_history')
+          .select('prize_data')
+          .eq('id', crackHistoryId)
+          .single(),
+        8000,
+        'Fetching crack history for share status update timed out'
+      );
 
       if (fetchError) throw fetchError;
       console.log('📝 Retrieved crack history record');
@@ -548,10 +748,14 @@ export class DatabaseService {
       console.log('📝 Updated prize data with share bonus flag');
 
       // Update the record
-      const { error: updateError } = await supabase
-        .from('crack_history')
-        .update({ prize_data: prizeData })
-        .eq('id', crackHistoryId);
+      const { error: updateError } = await withTimeout(
+        supabase
+          .from('crack_history')
+          .update({ prize_data: prizeData })
+          .eq('id', crackHistoryId),
+        8000,
+        'Updating crack history share status timed out'
+      );
 
       if (updateError) throw updateError;
       console.log('✅ Successfully updated crack history share status');
@@ -568,11 +772,15 @@ export class DatabaseService {
       console.log('⏰ Adjusting last crack time for user:', userId, 'by', minutesToSubtract, 'minutes');
       
       // Get current user profile
-      const { data: userProfile, error: fetchError } = await supabase
-        .from('user_profiles')
-        .select('last_crack_time')
-        .eq('id', userId)
-        .single();
+      const { data: userProfile, error: fetchError } = await withTimeout(
+        supabase
+          .from('user_profiles')
+          .select('last_crack_time')
+          .eq('id', userId)
+          .single(),
+        8000,
+        'Fetching user profile for time adjustment timed out'
+      );
 
       if (fetchError) throw fetchError;
       console.log('⏰ Retrieved user profile for time adjustment');
@@ -588,10 +796,14 @@ export class DatabaseService {
       console.log('⏰ Calculated adjusted time:', adjustedTime.toISOString());
 
       // Update the user profile
-      const { error: updateError } = await supabase
-        .from('user_profiles')
-        .update({ last_crack_time: adjustedTime.toISOString() })
-        .eq('id', userId);
+      const { error: updateError } = await withTimeout(
+        supabase
+          .from('user_profiles')
+          .update({ last_crack_time: adjustedTime.toISOString() })
+          .eq('id', userId),
+        8000,
+        'Updating last crack time timed out'
+      );
 
       if (updateError) throw updateError;
       console.log('✅ Successfully adjusted last crack time');
@@ -607,11 +819,15 @@ export class DatabaseService {
     try {
       console.log('🔍 Checking share bonus status for crack:', crackHistoryId);
       
-      const { data: crackHistory, error } = await supabase
-        .from('crack_history')
-        .select('prize_data')
-        .eq('id', crackHistoryId)
-        .single();
+      const { data: crackHistory, error } = await withTimeout(
+        supabase
+          .from('crack_history')
+          .select('prize_data')
+          .eq('id', crackHistoryId)
+          .single(),
+        8000,
+        'Checking share bonus status timed out'
+      );
 
       if (error) throw error;
 
@@ -647,14 +863,18 @@ export class DatabaseService {
         requestBody.video_id = videoId;
       }
 
-      const response = await fetch(`${supabaseUrl}/functions/v1/apply-bonus`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/functions/v1/apply-bonus`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify(requestBody),
+        }),
+        15000,
+        'Apply bonus request timed out'
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -672,10 +892,14 @@ export class DatabaseService {
 
   static async getUserClaimedBonuses(userId: string) {
     try {
-      const { data, error } = await supabase
-        .from('user_bonuses')
-        .select('bonus_type, claimed_at, video_id')
-        .eq('user_id', userId);
+      const { data, error } = await withTimeout(
+        supabase
+          .from('user_bonuses')
+          .select('bonus_type, claimed_at, video_id')
+          .eq('user_id', userId),
+        10000,
+        'Fetching user claimed bonuses timed out'
+      );
 
       if (error) throw error;
       return data || [];
@@ -689,13 +913,17 @@ export class DatabaseService {
   static async fetchLatestYouTubeVideo() {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-youtube-video`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-      });
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/functions/v1/fetch-latest-youtube-video`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }),
+        20000,
+        'Fetching latest YouTube video timed out'
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -714,13 +942,17 @@ export class DatabaseService {
   static async fetchLatestTweet() {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-tweet`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-      });
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/functions/v1/fetch-latest-tweet`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }),
+        20000,
+        'Fetching latest tweet timed out'
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -739,13 +971,17 @@ export class DatabaseService {
   static async fetchLatestTikTok() {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-latest-tiktok`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-      });
+      const response = await withTimeout(
+        fetch(`${supabaseUrl}/functions/v1/fetch-latest-tiktok`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        }),
+        20000,
+        'Fetching latest TikTok video timed out'
+      );
 
       if (!response.ok) {
         const errorData = await response.json();

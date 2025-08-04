@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { signOut, deleteAccount } from '../lib/auth';
+import { withTimeout } from '../utils/timeout';
 import { premiumTiers } from '../lib/prizes';
 import { ArrowLeft, Trophy, Calendar, Gift, LogOut, Clock, Share2, Check, Copy, Package, Trash2, AlertTriangle } from 'lucide-react';
 
@@ -12,6 +13,7 @@ export const Dashboard: React.FC = () => {
   const [crackHistory, setCrackHistory] = useState<any[]>([]);
   const [shippingAddresses, setShippingAddresses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [shareStates, setShareStates] = useState<{ [key: string]: 'idle' | 'sharing' | 'copied' }>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -25,39 +27,53 @@ export const Dashboard: React.FC = () => {
     if (!user) return;
 
     setIsLoading(true);
+    setError(null);
     try {
       // Fetch user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const { data: profile, error: profileError } = await withTimeout(
+        supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single(),
+        10000,
+        'Failed to load user profile: Request timed out'
+      );
 
       if (profileError) throw profileError;
       setUserProfile(profile);
 
       // Fetch crack history
-      const { data: history, error: historyError } = await supabase
-        .from('crack_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const { data: history, error: historyError } = await withTimeout(
+        supabase
+          .from('crack_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+        12000,
+        'Failed to load crack history: Request timed out'
+      );
 
       if (historyError) throw historyError;
       setCrackHistory(history);
 
       // Fetch shipping addresses for premium prizes
-      const { data: addresses, error: addressError } = await supabase
-        .from('shipping_addresses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+      const { data: addresses, error: addressError } = await withTimeout(
+        supabase
+          .from('shipping_addresses')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false }),
+        10000,
+        'Failed to load shipping addresses: Request timed out'
+      );
 
       if (addressError) throw addressError;
       setShippingAddresses(addresses || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
@@ -146,14 +162,14 @@ export const Dashboard: React.FC = () => {
         : crack.gift_name;
         
       return {
-        title: 'LuckyCookie - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prizeInfo} on LuckyCookie! 🎉\n\nDate: ${date}\n\nTry your luck too! `,
+        title: 'LuckyCookie.io - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prizeInfo} on LuckyCookie.io! 🎉\n\nDate: ${date}\n\nTry your luck too! ${baseUrl}`,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! `,
+        title: 'LuckyCookie.io - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie.io:\n\n"${crack.fortune}"\n\nDate: ${date}\n\nGet your fortune too! ${baseUrl}`,
         url: baseUrl
       };
     }
@@ -192,6 +208,42 @@ export const Dashboard: React.FC = () => {
         <div className="text-center">
           <div className="text-6xl mb-4">📊</div>
           <p className="text-gray-600">Loading your dashboard...</p>
+          {error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg max-w-md mx-auto">
+              <p className="text-red-800 text-sm">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  fetchData();
+                }}
+                className="mt-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error screen if there's an error but not loading
+  if (error && !isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-100 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-4">
+          <div className="text-6xl mb-4">😔</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Something went wrong</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+              fetchData();
+            }}
+            className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors font-bold"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );

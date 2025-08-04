@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { DatabaseService } from '../lib/database';
+import { withTimeout } from '../utils/timeout';
 import { gumroadAPI } from '../lib/gumroad';
 import { CookieAnimation } from '../components/CookieAnimation';
 import { ShippingForm, type ShippingData } from '../components/ShippingForm';
@@ -36,24 +37,33 @@ export const PremiumCrack: React.FC = () => {
     if (!saleId || !user) return;
     
     setVerifyingPurchase(true);
+    setError('');
     try {
       // Verify purchase with Gumroad
-      const isValid = await gumroadAPI.verifyPurchase(saleId, user.email!);
+      const isValid = await withTimeout(
+        gumroadAPI.verifyPurchase(saleId, user.email!),
+        15000,
+        'Purchase verification timed out'
+      );
       
       if (isValid) {
         // Store purchase in database
-        const { error } = await supabase
-          .from('gumroad_purchases')
-          .insert({
-            user_id: user.id,
-            sale_id: saleId,
-            product_id: `luckycookie-${tierFromUrl}`,
-            product_name: `LuckyCookie ${tierFromUrl.charAt(0).toUpperCase() + tierFromUrl.slice(1)} Tier`,
-            tier: tierFromUrl,
-            price_usd: premiumTiers.find(t => t.tier === tierFromUrl)?.priceRange.min || 0,
-            email: user.email!,
-            status: 'verified'
-          });
+        const { error } = await withTimeout(
+          supabase
+            .from('gumroad_purchases')
+            .insert({
+              user_id: user.id,
+              sale_id: saleId,
+              product_id: `luckycookie-${tierFromUrl}`,
+              product_name: `LuckyCookie ${tierFromUrl.charAt(0).toUpperCase() + tierFromUrl.slice(1)} Tier`,
+              tier: tierFromUrl,
+              price_usd: premiumTiers.find(t => t.tier === tierFromUrl)?.priceRange.min || 0,
+              email: user.email!,
+              status: 'verified'
+            }),
+          10000,
+          'Failed to save purchase: Request timed out'
+        );
           
         if (error) throw error;
         setPurchaseVerified(true);
@@ -79,27 +89,35 @@ export const PremiumCrack: React.FC = () => {
       const selectedPrize = await getRandomPremiumPrize(tierFromUrl);
 
       // Record the premium crack in history
-      const { error: historyError } = await supabase
-        .from('crack_history')
-        .insert({
-          user_id: user.id,
-          type: 'premium',
-          prize_data: JSON.stringify(selectedPrize),
-          won: true, // Premium always wins
-          gift_name: selectedPrize.productName,
-          gift_value: selectedPrize.value,
-          fortune: '', // Premium cracks don't have fortunes, but column is NOT NULL
-          premium_tier: selectedPrize.tier,
-        });
-
-      if (historyError) throw historyError;
+      const { data: historyData, error: historyError } = await withTimeout(
+        supabase
+          .from('crack_history')
+          .insert({
+            user_id: user.id,
+            type: 'premium',
+            prize_data: JSON.stringify(selectedPrize),
+            won: true, // Premium always wins
+            gift_name: selectedPrize.productName,
+            gift_value: selectedPrize.value,
+            fortune: '', // Premium cracks don't have fortunes, but column is NOT NULL
+            premium_tier: selectedPrize.tier,
+          })
+          .select()
+          .single(),
+        10000,
+        'Failed to save premium crack: Request timed out'
+      );
       
       // Update purchase status to cracked
       if (saleId) {
-        await supabase
-          .from('gumroad_purchases')
-          .update({ status: 'cracked' })
-          .eq('sale_id', saleId);
+        await withTimeout(
+          supabase
+            .from('gumroad_purchases')
+            .update({ status: 'cracked' })
+            .eq('sale_id', saleId),
+          8000,
+          'Failed to update purchase status: Request timed out'
+        );
       }
 
       setPrize(selectedPrize);

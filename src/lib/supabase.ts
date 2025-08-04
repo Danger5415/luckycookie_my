@@ -8,6 +8,12 @@ console.log('🔧 Supabase configuration check:');
 console.log('URL present:', !!supabaseUrl);
 console.log('Key present:', !!supabaseAnonKey);
 console.log('URL value:', supabaseUrl);
+console.log('Key value (first 20 chars):', supabaseAnonKey ? supabaseAnonKey.substring(0, 20) + '...' : 'Missing');
+console.log('Environment mode:', import.meta.env.MODE);
+console.log('Environment variables loaded:', {
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL ? 'Present' : 'Missing',
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'Present' : 'Missing'
+});
 
 // More thorough validation - check for empty strings and whitespace
 const isValidUrl = supabaseUrl && supabaseUrl.trim() !== '' && supabaseUrl.startsWith('https://');

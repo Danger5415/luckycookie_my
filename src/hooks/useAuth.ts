@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { createUserProfile } from '../lib/auth';
+import { withTimeout } from '../utils/timeout';
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -53,31 +54,12 @@ export const useAuth = () => {
         console.log('🔐 [AUTH] Calling supabase.auth.getSession()...');
         const sessionStartTime = Date.now();
         
-        // Get session with race condition timeout
-        const sessionPromise = supabase.auth.getSession();
-        const sessionTimeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => {
-            console.error('⏰ [AUTH] Session request timed out after 10 seconds');
-            reject(new Error('Session request timed out after 10 seconds'));
-          }, 10000);
-        });
-        
-        let sessionResult;
-        try {
-          sessionResult = await Promise.race([sessionPromise, sessionTimeoutPromise]);
-          console.log('✅ [AUTH] Session promise resolved successfully');
-        } catch (timeoutError) {
-          console.error('❌ [AUTH] Session timeout error:', timeoutError);
-          // Try one more time with a direct approach
-          console.log('🔄 [AUTH] Attempting direct session retrieval...');
-          try {
-            sessionResult = await supabase.auth.getSession();
-            console.log('✅ [AUTH] Direct session retrieval succeeded');
-          } catch (directError) {
-            console.error('❌ [AUTH] Direct session retrieval also failed:', directError);
-            throw timeoutError; // Throw the original timeout error
-          }
-        }
+        // Get session with timeout
+        const sessionResult = await withTimeout(
+          supabase.auth.getSession(),
+          10000,
+          'Session request timed out after 10 seconds'
+        );
         
         const sessionEndTime = Date.now();
         console.log(`📦 [AUTH] Session retrieved in ${sessionEndTime - sessionStartTime}ms`);
@@ -142,7 +124,11 @@ export const useAuth = () => {
           try {
             console.log('👤 [AUTH] Creating/updating user profile...');
             const profileStartTime = Date.now();
-            await createUserProfile(session.user);
+            await withTimeout(
+              createUserProfile(session.user),
+              8000,
+              'Profile creation timed out'
+            );
             const profileEndTime = Date.now();
             console.log(`✅ [AUTH] Profile updated in ${profileEndTime - profileStartTime}ms`);
           } catch (profileError) {
@@ -226,7 +212,11 @@ export const useAuth = () => {
           if (session?.user && event === 'SIGNED_IN') {
             try {
               console.log('👤 [AUTH] Auth state change - updating profile for signed in user');
-              await createUserProfile(session.user);
+              await withTimeout(
+                createUserProfile(session.user),
+                8000,
+                'Profile creation during auth change timed out'
+              );
               console.log('✅ [AUTH] Profile updated during auth state change');
             } catch (profileError) {
               console.warn('⚠️ [AUTH] Profile update warning during auth change:', profileError);

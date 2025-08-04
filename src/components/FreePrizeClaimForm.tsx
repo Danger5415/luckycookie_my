@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { DatabaseService } from '../lib/database';
+import { withTimeout } from '../utils/timeout';
 import { useAuth } from '../hooks/useAuth';
 import { Gift, Mail, User, Phone, Save, X, CheckCircle, CreditCard, Smartphone } from 'lucide-react';
 
@@ -98,21 +99,25 @@ export const FreePrizeClaimForm: React.FC<FreePrizeClaimFormProps> = ({
 
     try {
       // Save claim information to database
-      const { error } = await supabase
-        .from('free_prize_claims')
-        .insert({
-          user_id: user?.id,
-          crack_history_id: crackHistoryId,
-          prize_name: prizeName,
-          prize_value: prizeValue,
-          claim_type: formData.claim_type,
-          account_email: formData.account_email,
-          account_username: formData.account_username || null,
-          phone_number: formData.phone_number || null,
-          platform_details: formData.platform_details,
-          special_instructions: formData.special_instructions || null,
-          status: 'pending'
-        });
+      const { error } = await withTimeout(
+        supabase
+          .from('free_prize_claims')
+          .insert({
+            user_id: user?.id,
+            crack_history_id: crackHistoryId,
+            prize_name: prizeName,
+            prize_value: prizeValue,
+            claim_type: formData.claim_type,
+            account_email: formData.account_email,
+            account_username: formData.account_username || null,
+            phone_number: formData.phone_number || null,
+            platform_details: formData.platform_details,
+            special_instructions: formData.special_instructions || null,
+            status: 'pending'
+          }),
+        10000,
+        'Failed to save claim information: Request timed out'
+      );
 
       if (error) throw error;
 

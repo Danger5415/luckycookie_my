@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { DatabaseService } from '../lib/database';
+import { withTimeout } from '../utils/timeout';
 import { Youtube, Gift, Clock, CheckCircle, ExternalLink, Twitter } from 'lucide-react';
 
 interface BonusTask {
@@ -26,6 +27,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
   const [tasks, setTasks] = useState<BonusTask[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchingContent, setFetchingContent] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [claimingTask, setClaimingTask] = useState<string | null>(null);
   const [latestVideo, setLatestVideo] = useState<any>(null);
   const [latestTweet, setLatestTweet] = useState<any>(null);
@@ -154,6 +156,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
 
     try {
       setFetchingContent(true);
+      setError(null);
       
       // Fetch all content and claimed bonuses in parallel
       const [videoData, tweetData, tiktokData, claimedBonuses] = await Promise.all([
@@ -169,9 +172,15 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       setTasks(initializeTasks(claimedBonuses, videoData, tweetData, tiktokData));
     } catch (error) {
       console.error('Error initializing bonus tasks:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load bonus tasks');
       // Initialize with fallback data
-      const claimedBonuses = await fetchClaimedBonuses();
-      setTasks(initializeTasks(claimedBonuses));
+      try {
+        const claimedBonuses = await fetchClaimedBonuses();
+        setTasks(initializeTasks(claimedBonuses));
+      } catch (fallbackError) {
+        console.error('Error loading fallback data:', fallbackError);
+        setTasks(initializeTasks([])); // Initialize with empty data
+      }
     } finally {
       setFetchingContent(false);
     }
@@ -179,34 +188,46 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
 
   const fetchLatestVideo = async () => {
     try {
-      const videoData = await DatabaseService.fetchLatestYouTubeVideo();
+      const videoData = await withTimeout(
+        DatabaseService.fetchLatestYouTubeVideo(),
+        20000,
+        'Fetching latest YouTube video timed out'
+      );
       console.log('📺 Fetched latest YouTube video:', videoData);
       return videoData;
     } catch (error) {
       console.error('Error fetching latest YouTube video:', error);
-      return null;
+      throw error;
     }
   };
 
   const fetchLatestTweet = async () => {
     try {
-      const tweetData = await DatabaseService.fetchLatestTweet();
+      const tweetData = await withTimeout(
+        DatabaseService.fetchLatestTweet(),
+        20000,
+        'Fetching latest tweet timed out'
+      );
       console.log('🐦 Fetched latest tweet:', tweetData);
       return tweetData;
     } catch (error) {
       console.error('Error fetching latest tweet:', error);
-      return null;
+      throw error;
     }
   };
 
   const fetchLatestTikTok = async () => {
     try {
-      const tiktokData = await DatabaseService.fetchLatestTikTok();
+      const tiktokData = await withTimeout(
+        DatabaseService.fetchLatestTikTok(),
+        20000,
+        'Fetching latest TikTok timed out'
+      );
       console.log('🎵 Fetched latest TikTok:', tiktokData);
       return tiktokData;
     } catch (error) {
       console.error('Error fetching latest TikTok:', error);
-      return null;
+      throw error;
     }
   };
 
@@ -214,11 +235,15 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
     if (!user) return [];
 
     try {
-      const claimedBonuses = await DatabaseService.getUserClaimedBonuses(user.id);
+      const claimedBonuses = await withTimeout(
+        DatabaseService.getUserClaimedBonuses(user.id),
+        10000,
+        'Fetching claimed bonuses timed out'
+      );
       return claimedBonuses;
     } catch (error) {
       console.error('Error fetching claimed bonuses:', error);
-      return [];
+      throw error;
     }
   };
 
@@ -235,7 +260,11 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Apply the bonus
-      await DatabaseService.applyBonus(user.id, task.type, task.videoId);
+      await withTimeout(
+        DatabaseService.applyBonus(user.id, task.type, task.videoId),
+        15000,
+        'Applying bonus timed out'
+      );
 
       // Update the task as claimed and refresh tasks to check for newly unlocked ones
       await initializeComponent();
@@ -321,8 +350,26 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
             <Gift className="h-6 w-6 sm:h-8 sm:w-8 text-purple-500 mr-2 sm:mr-3" />
             <h3 className="text-lg sm:text-2xl font-bold text-gray-800">Progressive Bonus Tasks</h3>
           </div>
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-400 border-t-transparent mb-4"></div>
-          <p className="text-sm text-gray-600">Loading progressive bonus tasks...</p>
+          {error ? (
+            <div className="text-center">
+              <div className="text-4xl mb-4">😔</div>
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                  initializeComponent();
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-purple-400 border-t-transparent mb-4"></div>
+              <p className="text-sm text-gray-600">Loading progressive bonus tasks...</p>
+            </div>
+          )}
         </div>
       </div>
     );

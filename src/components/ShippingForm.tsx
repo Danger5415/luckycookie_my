@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { DatabaseService } from '../lib/database';
+import { withTimeout } from '../utils/timeout';
 import { useAuth } from '../hooks/useAuth';
 import { Package, MapPin, User, Phone, Mail, Save, X, CheckCircle } from 'lucide-react';
 
@@ -84,23 +85,27 @@ export const ShippingForm: React.FC<ShippingFormProps> = ({
 
     try {
       // Save shipping information to database
-      const { error } = await supabase
-        .from('shipping_addresses')
-        .insert({
-          user_id: user?.id,
-          prize_id: prizeId,
-          full_name: formData.full_name,
-          email: formData.email,
-          phone: formData.phone,
-          address_line_1: formData.address_line_1,
-          address_line_2: formData.address_line_2 || null,
-          city: formData.city,
-          state_province: formData.state_province,
-          postal_code: formData.postal_code,
-          country: formData.country,
-          special_instructions: formData.special_instructions || null,
-          status: 'pending'
-        });
+      const { error } = await withTimeout(
+        supabase
+          .from('shipping_addresses')
+          .insert({
+            user_id: user?.id,
+            prize_id: prizeId,
+            full_name: formData.full_name,
+            email: formData.email,
+            phone: formData.phone,
+            address_line_1: formData.address_line_1,
+            address_line_2: formData.address_line_2 || null,
+            city: formData.city,
+            state_province: formData.state_province,
+            postal_code: formData.postal_code,
+            country: formData.country,
+            special_instructions: formData.special_instructions || null,
+            status: 'pending'
+          }),
+        10000,
+        'Failed to save shipping information: Request timed out'
+      );
 
       if (error) throw error;
 
