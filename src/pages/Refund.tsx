@@ -205,7 +205,7 @@ export const Refund: React.FC = () => {
               </p>
               <div className="bg-gray-50 rounded-lg p-4">
                 <p className="text-gray-700">
-                  <strong>Email:</strong> support@luckycookie.io<br />
+                  <strong>Email:</strong> originaluckycookie.site@gmail.com<br />
                   <strong>Subject Line:</strong> "Refund Request - [Your Email]"<br />
                   <strong>Response Time:</strong> Within 24 hours<br />
                   <strong>Business Hours:</strong> Monday-Friday, 9 AM - 6 PM EST
