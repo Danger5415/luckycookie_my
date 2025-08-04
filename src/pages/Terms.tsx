@@ -26,18 +26,18 @@ export const Terms: React.FC = () => {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-8">
           <div className="flex items-center mb-6">
-            <FileText className="h-8 w-8 text-blue-500 mr-3" />
-            <h2 className="text-3xl font-bold text-gray-800">Terms & Conditions</h2>
+            <FileText className="h-6 w-6 sm:h-8 sm:w-8 text-blue-500 mr-2 sm:mr-3" />
+            <h2 className="text-xl sm:text-3xl font-bold text-gray-800">Terms & Conditions</h2>
           </div>
 
           <div className="prose max-w-none">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
               <div className="flex items-start">
-                <AlertCircle className="h-5 w-5 text-blue-600 mr-2 mt-0.5" />
+                <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mr-2 mt-0.5" />
                 <div>
-                  <p className="text-blue-800 text-sm">
+                  <p className="text-blue-800 text-xs sm:text-sm">
                     <strong>Important:</strong> Our order process is conducted by our online reseller Paddle.com. 
                     Paddle.com is the Merchant of Record for all our orders. Paddle provides all customer service 
                     inquiries and handles returns.
@@ -46,20 +46,20 @@ export const Terms: React.FC = () => {
               </div>
             </div>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">1. Acceptance of Terms</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">1. Acceptance of Terms</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 By accessing and using LuckyCookie.io ("the Service"), you accept and agree to be bound by the terms 
                 and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
               </p>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">2. Service Description</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">2. Service Description</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 LuckyCookie.io is an online fortune cookie experience platform that offers:
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 space-y-1 sm:space-y-2">
                 <li>Free fortune cookies with hourly availability</li>
                 <li>Premium fortune cookies with guaranteed prizes</li>
                 <li>Five premium tiers: Bronze ($13), Silver ($33), Gold ($65), Sapphire ($196), and Diamond ($458)</li>
@@ -68,12 +68,12 @@ export const Terms: React.FC = () => {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">3. User Accounts</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">3. User Accounts</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 To access certain features of the Service, you must create an account. You are responsible for:
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 space-y-1 sm:space-y-2">
                 <li>Maintaining the confidentiality of your account credentials</li>
                 <li>All activities that occur under your account</li>
                 <li>Providing accurate and complete information</li>
@@ -81,12 +81,12 @@ export const Terms: React.FC = () => {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">4. Premium Purchases</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">4. Premium Purchases</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 Premium cookie purchases are processed through Paddle.com. By making a purchase, you agree that:
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 space-y-1 sm:space-y-2">
                 <li>All sales are final unless otherwise specified in our refund policy</li>
                 <li>Prices are clearly displayed before purchase confirmation</li>
                 <li>You will receive a guaranteed prize from your selected tier</li>
@@ -95,12 +95,12 @@ export const Terms: React.FC = () => {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">5. Prize Fulfillment</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">5. Prize Fulfillment</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 We are committed to fair prize distribution:
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 space-y-1 sm:space-y-2">
                 <li>All prize selections are completely random within each tier</li>
                 <li>Premium cookies guarantee a prize from the purchased tier</li>
                 <li>Free cookies have a chance to win gifts or receive fortunes</li>
@@ -109,12 +109,12 @@ export const Terms: React.FC = () => {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">6. User Conduct</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">6. User Conduct</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 You agree not to:
               </p>
-              <ul className="list-disc list-inside text-gray-700 mb-4 space-y-2">
+              <ul className="list-disc list-inside text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 space-y-1 sm:space-y-2">
                 <li>Use the Service for any unlawful purpose</li>
                 <li>Attempt to manipulate or exploit the prize system</li>
                 <li>Create multiple accounts to circumvent limitations</li>
@@ -123,55 +123,55 @@ export const Terms: React.FC = () => {
               </ul>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">7. Intellectual Property</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">7. Intellectual Property</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 The Service and its original content, features, and functionality are owned by LuckyCookie.io and are 
                 protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
               </p>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">8. Limitation of Liability</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">8. Limitation of Liability</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 In no event shall LuckyCookie.io be liable for any indirect, incidental, special, consequential, or 
                 punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible 
                 losses, resulting from your use of the Service.
               </p>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">9. Termination</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">9. Termination</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 We may terminate or suspend your account and bar access to the Service immediately, without prior notice 
                 or liability, under our sole discretion, for any reason whatsoever, including without limitation if you 
                 breach the Terms.
               </p>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">10. Changes to Terms</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">10. Changes to Terms</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 We reserve the right to modify or replace these Terms at any time. If a revision is material, we will 
                 provide at least 30 days notice prior to any new terms taking effect.
               </p>
             </section>
 
-            <section className="mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">11. Contact Information</h3>
-              <p className="text-gray-700 mb-4">
+            <section className="mb-6 sm:mb-8">
+              <h3 className="text-lg sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">11. Contact Information</h3>
+              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4">
                 If you have any questions about these Terms & Conditions, please contact us at:
               </p>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-gray-700">
-                  <strong>Email:</strong> originaluckycookie.site@gmail.com<br />
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                <p className="text-sm sm:text-base text-gray-700">
+                  <strong>Email:</strong> <a href="mailto:originaluckycookie.site@gmail.com" className="text-blue-600 hover:text-blue-800 underline">originaluckycookie.site@gmail.com</a><br />
                   <strong>Website:</strong> https://luckycookie.site
                 </p>
               </div>
             </section>
 
-            <div className="border-t border-gray-200 pt-6 mt-8">
-              <p className="text-sm text-gray-500">
+            <div className="border-t border-gray-200 pt-4 sm:pt-6 mt-6 sm:mt-8">
+              <p className="text-xs sm:text-sm text-gray-500">
                 Last updated: {new Date().toLocaleDateString()}
               </p>
             </div>
