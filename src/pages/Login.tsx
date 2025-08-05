@@ -102,7 +102,17 @@ export const Login: React.FC = () => {
     } catch (error: any) {
       let errorMessage = 'Something went wrong. Please try again.';
       
-      if (error.message?.includes('Invalid login credentials')) {
+      // Check for network-related errors first
+      if (error.name === 'TypeError' && (
+        error.message?.includes('Failed to fetch') ||
+        error.message?.includes('Network request failed') ||
+        error.message?.includes('fetch') ||
+        error.message?.includes('NetworkError')
+      )) {
+        errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+      } else if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      } else if (error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Invalid email or password. Please check your credentials and try again.';
       } else if (error.message?.includes('Email not confirmed')) {
         errorMessage = 'Please check your email and click the confirmation link.';
@@ -112,6 +122,17 @@ export const Login: React.FC = () => {
         errorMessage = 'Password must be at least 8 characters long.';
       } else if (error.message?.includes('Too many requests')) {
         errorMessage = 'Too many login attempts. Please wait a few minutes before trying again.';
+      } else if (error.message?.includes('rate limit')) {
+        errorMessage = 'Rate limit exceeded. Please wait a moment before trying again.';
+      } else if (error.message?.includes('CORS')) {
+        errorMessage = 'Connection error. Please refresh the page and try again.';
+      } else if (error.message?.includes('Supabase')) {
+        errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
+      } else if (error.message) {
+        // Show the actual error message for unhandled cases
+        errorMessage = `Error: ${error.message}`;
+      } else {
+        errorMessage = 'An unexpected error occurred. Please try again or contact support if the issue persists.';
       }
       
       setMessage(errorMessage);
@@ -149,6 +170,19 @@ export const Login: React.FC = () => {
         errorMessage = 'Too many reset attempts. Please wait before trying again.';
       } else if (error.message?.includes('rate limit')) {
         errorMessage = 'Rate limit exceeded. Please wait a few minutes before requesting another reset.';
+      } else if (error.name === 'TypeError' && (
+        error.message?.includes('Failed to fetch') ||
+        error.message?.includes('Network request failed') ||
+        error.message?.includes('fetch')
+      )) {
+        errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+      } else if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
+      } else if (error.message?.includes('Supabase')) {
+        errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
+      } else if (error.message) {
+        // Show the actual error message for unhandled cases
+        errorMessage = `Reset failed: ${error.message}`;
       }
       
       setMessage(errorMessage);

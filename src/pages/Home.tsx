@@ -214,14 +214,14 @@ export const Home: React.FC = () => {
     
     if (prize.type === 'gift') {
       return {
-        title: 'LuckyCookie.io - I Won a Prize! 🎉',
-        text: `🍪 I just won ${prize.productName} on LuckyCookie.io! 🎉\n\nTry your luck too! ${baseUrl}`,
+        title: 'LuckyCookie - I Won a Prize! 🎉',
+        text: `🍪 I just won ${prize.productName} on LuckyCookie! 🎉\n\nTry your luck too! `,
         url: baseUrl
       };
     } else {
       return {
-        title: 'LuckyCookie.io - My Fortune 🔮',
-        text: `🍪 My fortune from LuckyCookie.io:\n\n"${prize.message}"\n\nGet your fortune too! ${baseUrl}`,
+        title: 'LuckyCookie - My Fortune 🔮',
+        text: `🍪 My fortune from LuckyCookie:\n\n"${prize.message}"\n\nGet your fortune too! `,
         url: baseUrl
       };
     }
@@ -288,7 +288,7 @@ export const Home: React.FC = () => {
               alt="LuckyCookie.io Logo" 
               className="h-6 w-6 sm:h-8 sm:w-8 mr-1 sm:mr-2 object-contain"
             />
-            <h1 className="text-sm sm:text-2xl font-bold text-gray-800">LuckyCookie.io</h1>
+            <h1 className="text-sm sm:text-2xl font-bold text-gray-800">LuckyCookie</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4">
             <Link 
