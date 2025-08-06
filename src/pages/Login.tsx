@@ -128,11 +128,9 @@ export const Login: React.FC = () => {
         errorMessage = 'Connection error. Please refresh the page and try again.';
       } else if (error.message?.includes('Supabase')) {
         errorMessage = 'Service temporarily unavailable. Please try again in a few moments.';
-      } else if (error.message) {
-        // Show the actual error message for unhandled cases
-        errorMessage = `Error: ${error.message}`;
       } else {
-        errorMessage = 'An unexpected error occurred. Please try again or contact support if the issue persists.';
+        // Show the actual error message for unhandled cases to help with debugging
+        errorMessage = error.message || 'An unexpected error occurred. Please try again or contact support if the issue persists.';
       }
       
       setMessage(errorMessage);

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { withTimeout } from '../utils/timeout';
 import type { User } from '@supabase/supabase-js';
 
 export const signUpWithEmail = async (email: string, password: string) => {
@@ -60,6 +61,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
 
 export const createUserProfile = async (user: User) => {
   try {
+    // First, create or update the basic user profile
     const { error } = await supabase
       .from('user_profiles')
       .upsert({
@@ -73,9 +75,58 @@ export const createUserProfile = async (user: User) => {
       // Log the error but don't throw for duplicate key errors
       if (error.code === '23505') {
         console.warn('User profile already exists:', error.message);
-        return;
+        // Continue to try updating country even if profile exists
       }
       throw error;
+    }
+
+    // Try to get and update user's country based on IP geolocation
+    try {
+      console.log('🌍 Attempting to get user country via geolocation...');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (supabaseUrl && supabaseKey) {
+        const geoResponse = await withTimeout(
+          fetch(`${supabaseUrl}/functions/v1/get-user-country`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabaseKey}`,
+            },
+          }),
+          10000,
+          'Geolocation request timed out'
+        );
+
+        if (geoResponse.ok) {
+          const geoData = await geoResponse.json();
+          console.log('🌍 Geolocation response:', geoData);
+          
+          if (geoData.country && geoData.country !== 'Unknown') {
+            // Update user profile with country information
+            const { error: countryError } = await supabase
+              .from('user_profiles')
+              .update({ country: geoData.country })
+              .eq('id', user.id);
+              
+            if (countryError) {
+              console.warn('⚠️ Failed to update user country:', countryError.message);
+            } else {
+              console.log('✅ Successfully updated user country:', geoData.country);
+            }
+          } else {
+            console.log('🌍 Geolocation returned unknown country, skipping update');
+          }
+        } else {
+          console.warn('⚠️ Geolocation API request failed:', geoResponse.status);
+        }
+      } else {
+        console.warn('⚠️ Supabase configuration missing for geolocation');
+      }
+    } catch (geoError) {
+      console.warn('⚠️ Geolocation error (non-critical):', geoError);
+      // Don't throw here - country detection failure shouldn't break user registration
     }
   } catch (error: any) {
     // Handle network errors gracefully
