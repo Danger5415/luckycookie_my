@@ -660,6 +660,7 @@ export const Admin: React.FC = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Country</th>
               <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cracks</th>
               <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchases</th>
               <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
@@ -677,6 +678,14 @@ export const Admin: React.FC = () => {
                     <div>
                       <div className="text-xs sm:text-sm font-medium text-gray-900">{user.email}</div>
                       <div className="text-xs text-gray-500">Streak: {user.streak} days</div>
+                    </div>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 mr-1 sm:mr-2" />
+                      <span className="text-xs sm:text-sm text-gray-900">
+                        {user.country || 'Unknown'}
+                      </span>
                     </div>
                   </td>
                   <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
