@@ -440,7 +440,7 @@ export const getRandomFreePrize = async (): Promise<FreePrize> => {
   const random = Math.random();
   
   // 10% chance to win a gift from Amazon
-  if (random < 0.2) {
+  if (random < 0.05) {
     try {
       // Try to get a dynamic prize from database (price range $0.67 - $3.27)
       const dynamicPrize = await DatabaseService.getRandomFreePrizeByPriceRange(0.67, 3.27);
