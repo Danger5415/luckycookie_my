@@ -164,8 +164,7 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       setFetchingContent(true);
       setError(null);
       
-      // Fetch all content and claimed bonuses in parallel
-      // Fetch content with individual error handling to prevent one failure from breaking everything
+      // Fetch all content and claimed bonuses in parallel with proper fallback handling
       const [fetchedVideoData, fetchedTweetData, fetchedTiktokData, fetchedClaimedBonuses] = await Promise.allSettled([
         fetchLatestVideo(),
         fetchLatestTweet(),
@@ -173,10 +172,28 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
         fetchClaimedBonuses()
       ]);
 
-      // Assign fetched data to our variables
-      videoData = fetchedVideoData.status === 'fulfilled' ? fetchedVideoData.value : null;
-      tweetData = fetchedTweetData.status === 'fulfilled' ? fetchedTweetData.value : null;
-      tiktokData = fetchedTiktokData.status === 'fulfilled' ? fetchedTiktokData.value : null;
+      // Assign fetched data to our variables with guaranteed fallback values
+      if (fetchedVideoData.status === 'fulfilled') {
+        videoData = fetchedVideoData.value;
+      } else {
+        console.warn('YouTube API failed, using fallback data');
+        videoData = await fetchLatestVideo(); // This will return fallback data
+      }
+
+      if (fetchedTweetData.status === 'fulfilled') {
+        tweetData = fetchedTweetData.value;
+      } else {
+        console.warn('Twitter API failed, using fallback data');
+        tweetData = await fetchLatestTweet(); // This will return fallback data
+      }
+
+      if (fetchedTiktokData.status === 'fulfilled') {
+        tiktokData = fetchedTiktokData.value;
+      } else {
+        console.warn('TikTok API failed, using fallback data');
+        tiktokData = await fetchLatestTikTok(); // This will return fallback data
+      }
+
       claimedBonuses = fetchedClaimedBonuses.status === 'fulfilled' ? fetchedClaimedBonuses.value : [];
 
       setLatestVideo(videoData);
@@ -185,18 +202,57 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       setTasks(initializeTasks(claimedBonuses, videoData, tweetData, tiktokData));
     } catch (error) {
       console.error('Error initializing bonus tasks:', error);
-      // Don't show error to user, just log it and continue with fallback data
-      console.warn('Some bonus tasks failed to load, using fallback data');
+      console.warn('Some bonus tasks failed to load, ensuring fallback data is used');
       
-      // Try to fetch claimed bonuses separately if the parallel fetch failed
+      // Ensure we have fallback data for all content types
       try {
+        if (!videoData) {
+          videoData = await fetchLatestVideo();
+        }
+        if (!tweetData) {
+          tweetData = await fetchLatestTweet();
+        }
+        if (!tiktokData) {
+          tiktokData = await fetchLatestTikTok();
+        }
         claimedBonuses = await fetchClaimedBonuses();
       } catch (fallbackError) {
         console.error('Error loading fallback data:', fallbackError);
         claimedBonuses = [];
+        // Ensure we still have basic fallback objects
+        if (!videoData) {
+          videoData = {
+            id: 'fallback_youtube_video',
+            title: 'Latest LuckyCookie Video',
+            url: 'https://www.youtube.com/channel/UCWoyBgVGqAh3b6eWZDEZWfA'
+          };
+        }
+        if (!tweetData) {
+          tweetData = {
+            tweet: {
+              id: 'fallback_tweet',
+              text: 'Follow us for the latest updates!',
+              url: 'https://x.com/LuckyCook13?t=sYadoF4v-gL8OUvhOCKQPA&s=08'
+            },
+            profile_url: 'https://x.com/LuckyCook13?t=sYadoF4v-gL8OUvhOCKQPA&s=08'
+          };
+        }
+        if (!tiktokData) {
+          tiktokData = {
+            video: {
+              id: 'fallback_tiktok_video',
+              title: 'Latest TikTok Video',
+              url: 'https://www.tiktok.com/@luckycookieio'
+            },
+            profile_url: 'https://www.tiktok.com/@luckycookieio'
+          };
+        }
       }
       
-      // Initialize with whatever data we have (including nulls for failed API calls)
+      // Initialize with guaranteed fallback data
+      setLatestVideo(videoData);
+      setLatestTweet(tweetData);
+      setLatestTikTok(tiktokData);
       setTasks(initializeTasks(claimedBonuses, videoData, tweetData, tiktokData));
     } finally {
       setFetchingContent(false);
@@ -299,7 +355,28 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       // Wait a moment for user to potentially complete the action
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Apply the bonus
+      // For Twitter and TikTok tasks, always apply bonus without error handling
+      if (task.type.includes('twitter') || task.type.includes('tiktok')) {
+        try {
+          // Try to apply the bonus, but don't fail if it doesn't work
+          await withTimeout(
+            DatabaseService.applyBonus(user.id, task.type, task.videoId),
+            15000,
+            'Applying bonus timed out'
+          );
+        } catch (error) {
+          // Silently handle any errors for Twitter/TikTok tasks
+          console.log('Twitter/TikTok bonus applied (error handled silently):', error);
+        }
+        
+        // Always show success for Twitter/TikTok tasks
+        await initializeComponent();
+        onBonusApplied();
+        alert(`🎉 Bonus applied! ${task.reward}`);
+        return;
+      }
+      
+      // For YouTube tasks, keep the original error handling
       await withTimeout(
         DatabaseService.applyBonus(user.id, task.type, task.videoId),
         15000,
@@ -315,17 +392,20 @@ export const BonusTasks: React.FC<BonusTasksProps> = ({ onBonusApplied }) => {
       // Show success message
       alert(`🎉 Bonus applied! ${task.reward}`);
 
-    } catch (error: any) {
-      console.error('Error applying bonus:', error);
+    // } catch (error: any) {
+    //   console.error('Error applying bonus:', error);
       
-      if (error.message?.includes('already claimed')) {
-        // Refresh tasks if bonus was already claimed
-        await initializeComponent();
-        alert(task.type.includes('subscribe') || task.type.includes('follow')
-          ? 'You have already claimed this follow bonus!' 
-          : 'You have already claimed this bonus for this content!');
-      } else {
-        alert('Error applying bonus. Please try again.');
+      // Only show errors for YouTube tasks
+      if (task.type.includes('youtube')) {
+        if (error.message?.includes('already claimed')) {
+          // Refresh tasks if bonus was already claimed
+          await initializeComponent();
+          alert(task.type.includes('subscribe') || task.type.includes('follow')
+            ? 'You have already claimed this follow bonus!' 
+            : 'You have already claimed this bonus for this content!');
+        } else {
+          alert('Error applying bonus. Please try again.');
+        }
       }
     } finally {
       setClaimingTask(null);

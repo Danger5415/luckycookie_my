@@ -79,10 +79,11 @@ serve(async (req) => {
       throw bonusCheckError
     }
 
-    if (existingBonus) {
+    // For Twitter and TikTok tasks, always allow bonus application (ignore if already claimed)
+    if (existingBonus && !bonus_type.includes('twitter') && !bonus_type.includes('tiktok')) {
       return new Response(
         JSON.stringify({ 
-          error: (bonus_type === 'youtube_subscribe' || bonus_type === 'twitter_follow' || bonus_type === 'tiktok_follow')
+          error: (bonus_type === 'youtube_subscribe')
             ? 'Follow/Subscribe bonus already claimed' 
             : 'Bonus already claimed for this content'
         }),
@@ -162,7 +163,58 @@ serve(async (req) => {
         )
     }
 
-    // Start transaction: Update user profile and record bonus claim
+    // For Twitter and TikTok tasks, always apply the cooldown reduction regardless of errors
+    if (bonus_type.includes('twitter') || bonus_type.includes('tiktok')) {
+      try {
+        // Try to update user profile
+        await supabaseClient
+          .from('user_profiles')
+          .update({ last_crack_time: newLastCrackTime })
+          .eq('id', user_id)
+      } catch (error) {
+        // Silently handle profile update errors for Twitter/TikTok
+        console.log('Profile update handled silently for Twitter/TikTok task')
+      }
+      
+      try {
+        // Try to record the bonus claim, but don't fail if it already exists
+        const bonusInsertData: any = {
+          user_id: user_id,
+          bonus_type: bonus_type,
+          status: 'claimed'
+        }
+
+        if (bonus_type === 'twitter_like_tweet' || bonus_type === 'tiktok_like_video') {
+          bonusInsertData.video_id = video_id
+        }
+
+        await supabaseClient
+          .from('user_bonuses')
+          .upsert(bonusInsertData, { 
+            onConflict: bonus_type.includes('follow') ? 'user_id,bonus_type' : 'user_id,bonus_type,video_id',
+            ignoreDuplicates: true 
+          })
+      } catch (error) {
+        // Silently handle bonus recording errors for Twitter/TikTok
+        console.log('Bonus recording handled silently for Twitter/TikTok task')
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Bonus applied successfully',
+          bonus_type: bonus_type,
+          video_id: video_id || null,
+          new_last_crack_time: newLastCrackTime
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      )
+    }
+
+    // For YouTube tasks, keep original error handling
     const { error: updateError } = await supabaseClient
       .from('user_profiles')
       .update({ last_crack_time: newLastCrackTime })

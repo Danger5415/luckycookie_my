@@ -931,10 +931,10 @@ export class DatabaseService {
       }
 
       const result = await response.json();
-      return result.video;
+      return result.video || { id: 'fallback-youtube-id', title: 'Latest Video', url: '' };
     } catch (error) {
       console.error('Error fetching latest YouTube video:', error);
-      throw error;
+      return { id: 'fallback-youtube-id', title: 'Latest Video', url: '' };
     }
   }
 
@@ -960,10 +960,10 @@ export class DatabaseService {
       }
 
       const result = await response.json();
-      return result.tweet;
+      return result.tweet || { id: 'fallback-tweet-id', text: 'Latest Tweet', url: '' };
     } catch (error) {
       console.error('Error fetching latest tweet:', error);
-      throw error;
+      return { id: 'fallback-tweet-id', text: 'Latest Tweet', url: '' };
     }
   }
 
@@ -989,10 +989,10 @@ export class DatabaseService {
       }
 
       const result = await response.json();
-      return result.video;
+      return result.video || { id: 'fallback-tiktok-id', title: 'Latest Video', url: '' };
     } catch (error) {
       console.error('Error fetching latest TikTok video:', error);
-      throw error;
+      return { id: 'fallback-tiktok-id', title: 'Latest Video', url: '' };
     }
   }
 }
